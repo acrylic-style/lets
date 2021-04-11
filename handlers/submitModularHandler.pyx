@@ -12,7 +12,7 @@ import tornado.gen
 import tornado.web
 from timeout_decorator import timeout
 
-import secret.achievements.utils
+#import secret.achievements.utils
 from common.constants import gameModes
 from common.constants import mods
 from common.log import logUtils as log
@@ -32,7 +32,7 @@ from objects import glob
 from objects import score
 from objects import scoreboard
 from objects.charts import BeatmapChart, OverallChart
-from secret import butterCake
+#from secret import butterCake
 
 class handler(requestsManager.asyncRequestHandler):
 	"""
@@ -292,8 +292,8 @@ class handler(requestsManager.asyncRequestHandler):
 				userUtils.appendNotes(userID, "Impossible mod combination {} (score submitter)".format(s.mods))
 
 			# NOTE: Process logging was removed from the client starting from 20180322
-			if s.completed == 3 and "pl" in self.request.arguments:
-				butterCake.bake(self, s)
+			#if s.completed == 3 and "pl" in self.request.arguments:
+			#	butterCake.bake(self, s)
 
 			# Save replay for all passed scores
 			# Make sure the score has an id as well (duplicated?, query error?)
@@ -451,8 +451,8 @@ class handler(requestsManager.asyncRequestHandler):
 			keepSending = False
 
 			# At the end, check achievements
-			if s.passed:
-				new_achievements = secret.achievements.utils.unlock_achievements(s, beatmapInfo, newUserStats)
+			#if s.passed:
+			#	new_achievements = secret.achievements.utils.unlock_achievements(s, beatmapInfo, newUserStats)
 
 			# Output ranking panel only if we passed the song
 			# and we got valid beatmap info from db
@@ -489,7 +489,7 @@ class handler(requestsManager.asyncRequestHandler):
 							beatmapInfo.beatmapID,
 						),
 						OverallChart(
-							userID, oldUserStats, newUserStats, s, new_achievements, oldRank, rankInfo["currentRank"]
+							userID, oldUserStats, newUserStats, s, "", oldRank, rankInfo["currentRank"]
 						)
 					]
 				else:
@@ -520,7 +520,7 @@ class handler(requestsManager.asyncRequestHandler):
 							("toNextRank", rankInfo["difference"]),
 							("toNextRankUser", rankInfo["nextUsername"]),
 							("achievements", ""),
-							("achievements-new", secret.achievements.utils.achievements_response(new_achievements)),
+							("achievements-new", ""),
 							("onlineScoreId", s.scoreID)
 						])
 					]

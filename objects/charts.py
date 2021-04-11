@@ -1,4 +1,4 @@
-from secret.achievements.utils import achievements_response
+#from secret.achievements.utils import achievements_response
 
 
 class Chart:
@@ -123,7 +123,7 @@ class OverallChart(Chart):
             **self.before_after_dict("maxCombo", self.max_combo),
             **self.before_after_dict("accuracy", self.accuracy),
             **self.before_after_dict("pp", self.pp),
-            "achievements-new": achievements_response(self.new_achievements),
+            "achievements-new": "",
             "onlineScoreId": self.score_id
         }
 

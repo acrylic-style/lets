@@ -49,7 +49,7 @@ from helpers import consoleHelper
 from common import agpl
 from objects import glob
 from pubSubHandlers import beatmapUpdateHandler
-import secret.achievements.utils
+#import secret.achievements.utils
 
 
 def make_app():
@@ -205,13 +205,14 @@ def main():
 				)
 
 		# Load achievements
-		loudLog("Loading achievements")
-		try:
-			secret.achievements.utils.load_achievements()
-		except:
-			logging.error("Error while loading achievements")
-			raise
+		#loudLog("Loading achievements")
+		#try:
+		#	secret.achievements.utils.load_achievements()
+		#except:
+		#	logging.error("Error while loading achievements")
+		#	raise
 
+		glob.ACHIEVEMENTS_VERSION = "0.0.0"
 		# Set achievements version
 		glob.redis.set("lets:achievements_version", glob.ACHIEVEMENTS_VERSION)
 		loudLog("Achievements version is {}".format(glob.ACHIEVEMENTS_VERSION))

@@ -6,9 +6,9 @@ from constants import exceptions
 from helpers import mapsHelper
 from objects import glob
 
-from pp.catch_the_pp.osu_parser.beatmap import Beatmap as CalcBeatmap
-from pp.catch_the_pp.osu.ctb.difficulty import Difficulty
-from pp.catch_the_pp import ppCalc
+#from pp.catch_the_pp.osu_parser.beatmap import Beatmap as CalcBeatmap
+#from pp.catch_the_pp.osu.ctb.difficulty import Difficulty
+#from pp.catch_the_pp import ppCalc
 
 stats = {
     "latency": {
@@ -65,8 +65,8 @@ class Cicciobello:
             # TODO: Sanizite mods
 
             # Gamemode check
-            if self.score is not None and self.score.gameMode != gameModes.CTB:
-                raise exceptions.unsupportedGameModeException()
+            #if self.score is not None and self.score.gameMode != gameModes.CTB:
+            raise exceptions.unsupportedGameModeException()
 
             # Calculate difficulty
             calcBeatmap = CalcBeatmap(mapFile)
