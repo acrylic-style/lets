@@ -324,7 +324,7 @@ class score:
 				return
 			rank = generalUtils.getRank(_score=self)
 			query = "INSERT INTO osu_scores{}_high (scorechecksum, beatmap_id, beatmapset_id, user_id, score, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, perfect, enabled_mods, pass, date, pp) VALUES (0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gameModes.getGameModeForDB(self.gameMode))
-			self.scoreID = int(glob.db.execute(query, [bm["beatmap_id"], bm["beatmapset_id"],, userUtils.getID(self.playerName), self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, int(self.passed), self.playDateTime, self.pp]))
+			self.scoreID = int(glob.db.execute(query, [bm["beatmap_id"], bm["beatmapset_id"], userUtils.getID(self.playerName), self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, int(self.passed), self.playDateTime, self.pp]))
 
 			# Set old personal best to completed = 2
 			# if self.oldPersonalBest != 0 and self.completed == 3:
