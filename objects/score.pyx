@@ -259,10 +259,10 @@ class score:
 				else:
 					beatmapId = r["beatmap_id"]
 				duplicate = glob.db.fetch(
-					"SELECT score_id FROM osu_scores{} ".format(gameModes.getGameModeForDB(self.gameMode))
+					"SELECT score_id FROM osu_scores{} "
 					"WHERE user_id = %s AND beatmap_id = %s "
 					"AND score = %s AND enabled_mods = %s AND `date` >= %s "
-					"LIMIT 1",
+					"LIMIT 1".format(gameModes.getGameModeForDB(self.gameMode)),
 					(
 						userID, beatmapId, self.score, self.mods, int(time.time()) - 120,
 					)

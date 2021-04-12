@@ -48,6 +48,7 @@ class handler(requestsManager.asyncRequestHandler):
 				# TODO: How do we get gamemode needed to fetch score?
 				# disabled for now
 				# self._addComment()
+				return None
 		except (exceptions.loginFailedException, exceptions.need2FAException, exceptions.userBannedException):
 			self.write("error: no")
 
