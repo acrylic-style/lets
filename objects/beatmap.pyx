@@ -131,14 +131,49 @@ class beatmap:
 		return -- True if set, False if not set
 		"""
 		# Get data from DB
-		data = objects.glob.db.fetch(
+		std = objects.glob.db.fetch(
 			"SELECT osu_beatmapsets.approved, osu_beatmapsets.last_update, osu_beatmapsets.rating, osu_beatmapsets.title, osu_beatmaps.checksum, "
 			"osu_beatmaps.hit_length, osu_beatmaps.difficultyrating, osu_beatmaps.bpm, osu_beatmaps.countNormal, osu_beatmaps.countSlider, "
 			"osu_beatmaps.countSpinner, osu_beatmaps.diff_drain, osu_beatmaps.diff_size, osu_beatmaps.diff_overall, osu_beatmaps.diff_approach, "
 			"osu_beatmaps.playcount, osu_beatmaps.passcount, osu_beatmaps.approved, osu_beatmaps.beatmap_id, osu_beatmaps.beatmapset_id "
-			"FROM osu_beatmaps LEFT JOIN osu_beatmapsets ON osu_beatmapsets.beatmapset_id = osu_beatmaps.beatmapset_id WHERE osu_beatmaps.checksum = %s LIMIT 1",
+			"FROM osu_beatmaps LEFT JOIN osu_beatmapsets ON osu_beatmapsets.beatmapset_id = osu_beatmaps.beatmapset_id WHERE osu_beatmaps.checksum = %s AND osu_beatmaps.playmode = 0 LIMIT 1",
 			[md5]
 		)
+		taiko = objects.glob.db.fetch("SELECT difficultyrating FROM osu_beatmaps WHERE checksum = %s AND osu_beatmaps.playmode = 1 LIMIT 1", [md5])
+		ctb = objects.glob.db.fetch("SELECT difficultyrating FROM osu_beatmaps WHERE checksum = %s AND osu_beatmaps.playmode = 2 LIMIT 1", [md5])
+		mania = objects.glob.db.fetch("SELECT difficultyrating FROM osu_beatmaps WHERE checksum = %s AND osu_beatmaps.playmode = 3 LIMIT 1", [md5])
+
+		if std is not None:
+			self.starsStd = std.difficultyrating
+		else:
+			self.starsStd = 0
+
+		if taiko is not None:
+			self.starsTaiko = taiko.difficultyrating
+		else:
+			self.starsTaiko = 0
+
+		if ctb is not None:
+			self.starsCtb = ctb.difficultyrating
+		else:
+			self.starsCtb = 0
+
+		if mania is not None:
+			self.starsMania = mania.difficultyrating
+		else:
+			self.starsMania = 0
+
+		data = std
+
+		if data is None:
+			data = objects.glob.db.fetch(
+				"SELECT osu_beatmapsets.approved, osu_beatmapsets.last_update, osu_beatmapsets.rating, osu_beatmapsets.title, osu_beatmaps.checksum, "
+				"osu_beatmaps.hit_length, osu_beatmaps.difficultyrating, osu_beatmaps.bpm, osu_beatmaps.countNormal, osu_beatmaps.countSlider, "
+				"osu_beatmaps.countSpinner, osu_beatmaps.diff_drain, osu_beatmaps.diff_size, osu_beatmaps.diff_overall, osu_beatmaps.diff_approach, "
+				"osu_beatmaps.playcount, osu_beatmaps.passcount, osu_beatmaps.approved, osu_beatmaps.beatmap_id, osu_beatmaps.beatmapset_id "
+				"FROM osu_beatmaps LEFT JOIN osu_beatmapsets ON osu_beatmapsets.beatmapset_id = osu_beatmaps.beatmapset_id WHERE osu_beatmaps.checksum = %s LIMIT 1",
+				[md5]
+			)
 
 		# Make sure the query returned something
 		if data is None:
