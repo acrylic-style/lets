@@ -217,14 +217,6 @@ def main():
 		glob.redis.set("lets:achievements_version", glob.ACHIEVEMENTS_VERSION)
 		loudLog("Achievements version is {}".format(glob.ACHIEVEMENTS_VERSION))
 
-		# Load AQL thresholds
-		loudLog("Loading AQL thresholds")
-		try:
-			glob.aqlThresholds.reload()
-		except:
-			logging.error("Error while reloading AQL thresholds")
-			raise
-
 		# Check if s3 is enabled
 		if not glob.conf.s3_enabled:
 			loudLog("S3 is disabled!", logging.warning)
