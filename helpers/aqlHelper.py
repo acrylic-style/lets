@@ -22,19 +22,14 @@ class AqlThresholds:
         """
         log.debug("Reloading AQL thresholds")
         self._thresholds = {}
-        for x in glob.db.fetchAll(
-            "SELECT `name`, value_string FROM system_settings WHERE `name` LIKE 'aql\_threshold\_%%'"
-        ):
-            parts = x["name"].split("aql_threshold_")
-            if len(parts) < 1:
-                continue
-            m = gameModes.getGameModeFromDB(parts[1])
-            if m is None:
-                continue
-            try:
-                self._thresholds[m] = float(x["value_string"])
-            except ValueError:
-                continue
+        self._thresholds[''] = float(1000)
+        self._thresholds['_taiko'] = float(1000)
+        self._thresholds['_fruits'] = float(1000)
+        self._thresholds['_mania'] = float(1000)
+        self._thresholds['std'] = float(1000)
+        self._thresholds['taiko'] = float(1000)
+        self._thresholds['ctb'] = float(1000)
+        self._thresholds['mania'] = float(1000)
         log.debug([(gameModes.getGameModeForDB(x), self[x]) for x in self])
         if not all(x in self._thresholds for x in range(gameModes.STD, gameModes.MANIA)):
             raise RuntimeError("Invalid AQL thresholds. Please check your system_settings table.")
