@@ -14,7 +14,7 @@ class beatmap:
 	             "bpm", "playcount" ,"passcount", "refresh", "filename", "beatmapId", "beatmapSetId", "userId",
 	             "checksum", "version", "total_length", "hit_length", "countTotal", "countNormal", "countSlider", "countSpinner",
 	             "diff_drain", "diff_size", "diff_overall", "diff_approach", "playmode", "approved", "last_update", "difficultyrating",
-	             "orphaned", "youtube_preview", "score_version", "deleted_at")
+	             "orphaned", "youtube_preview", "score_version")
 
 	def __init__(self, md5 = None, beatmapSetID = None, gameMode = 0, refresh=False, fileName=None):
 		"""
@@ -41,14 +41,13 @@ class beatmap:
 		self.diff_approach = 0
 		self.playmode = 0
 		self.approved = 0
-		self.last_update = 0
+		self.last_update = "1970/1/1 00:00:00"
 		self.difficultyrating = 0
 		self.playcount = 0
 		self.passcount = 0
 		self.orphaned = 0
 		self.youtube_preview = ""
 		self.score_version = 0
-		self.deleted_at = 0
 		self.bpm = 0
 
 		self.songName = ""
@@ -103,16 +102,13 @@ class beatmap:
 			self.orphaned,
 			self.youtube_preview,
 			self.score_version,
-			self.deleted_at,
 			clamp(self.bpm, -2147483648, 2147483647)
 		]
-		if self.filename is not None:
-			params.append(self.filename)
 		objects.glob.db.execute(
 			"INSERT INTO `osu_beatmaps` (`beatmap_id`, `beatmapset_id`, `user_id`, `filename`, `checksum`, `version`, `total_length`, `hit_length`, `countTotal`, "
-			"`countNormal`, `countSldier`, `countSpinner`, `diff_drain`, `diff_size`, `diff_overall`, `diff_approach`, `playmode`, `approved`, `last_update`, "
-			"`difficultyrating`, `playcount`, `passcount`, `orphaned`, `youtube_preview`, `score_version`, `deleted_at`, `bpm` "
-			"VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+			"`countNormal`, `countSlider`, `countSpinner`, `diff_drain`, `diff_size`, `diff_overall`, `diff_approach`, `playmode`, `approved`, `last_update`, "
+			"`difficultyrating`, `playcount`, `passcount`, `orphaned`, `youtube_preview`, `score_version`, `bpm` "
+			") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
 			params
 		)
 
@@ -202,7 +198,7 @@ class beatmap:
 			"INSERT IGNORE INTO osu_beatmaps (`beatmap_id`, `beatmapset_id`, `user_id`, `filename`, `checksum`, `version`, `total_length`, `hit_length`, "
 			"`countTotal`, `countNormal`, `countSlider`, `countSpinner`, `diff_drain`, `diff_size`, `diff_overall`, `diff_approach`, `playmode`, "
 			"`approved`, `last_update`, `difficultyrating`, `playcount`, `passcount`, `bpm`"
-			") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+			") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
 			(
 				data["beatmap_id"],
 				data["beatmapset_id"],
@@ -321,6 +317,7 @@ class beatmap:
 		self.saveDataFromApi(self.filename, dataCtb)
 		self.saveDataFromApi(self.filename, dataMania)
 		self.checksum = md5
+		self.last_update = mainData["last_update"]
 		self.approved = convertRankedStatus(int(mainData["approved"]))
 		self.beatmapId = int(mainData["beatmap_id"])
 		self.beatmapSetId = int(mainData["beatmapset_id"])
