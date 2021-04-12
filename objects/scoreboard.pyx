@@ -96,7 +96,7 @@ class scoreboard:
 		self.scores.append(-1)
 
 		# Make sure the beatmap is ranked
-		if self.beatmap.rankedStatus < rankedStatuses.RANKED:
+		if self.beatmap.approved < rankedStatuses.RANKED:
 			return
 
 		# Query parts

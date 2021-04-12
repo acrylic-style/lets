@@ -1,5 +1,5 @@
 import time
-
+from datetime import datetime
 from common.constants import gameModes
 from common.log import logUtils as log
 from constants import rankedStatuses
@@ -135,7 +135,7 @@ class beatmap:
 			"SELECT osu_beatmapsets.approved, osu_beatmapsets.last_update, osu_beatmapsets.rating, osu_beatmapsets.title, osu_beatmaps.checksum, "
 			"osu_beatmaps.hit_length, osu_beatmaps.difficultyrating, osu_beatmaps.bpm, osu_beatmaps.countNormal, osu_beatmaps.countSlider, "
 			"osu_beatmaps.countSpinner, osu_beatmaps.diff_drain, osu_beatmaps.diff_size, osu_beatmaps.diff_overall, osu_beatmaps.diff_approach, "
-			"osu_beatmaps.playcount, osu_beatmaps.passcount, osu_beatmaps.approved "
+			"osu_beatmaps.playcount, osu_beatmaps.passcount, osu_beatmaps.approved, osu_beatmaps.beatmap_id, osu_beatmaps.beatmapset_id "
 			"FROM osu_beatmaps LEFT JOIN osu_beatmapsets ON osu_beatmapsets.beatmapset_id = osu_beatmaps.beatmapset_id WHERE osu_beatmaps.checksum = %s LIMIT 1",
 			[md5]
 		)
@@ -152,11 +152,15 @@ class beatmap:
 			expire *= 3
 
 		# Make sure the beatmap data in db is not too old
-		if int(expire) > 0 and time.time() > int(int(time.mktime(time.strptime(data["last_update"], "%Y-%m-%d %H:%M:%S"))*1000)/1000)+int(expire):
+		if int(expire) > 0 and time.time() > int(datetime.timestamp(data["last_update"]))+int(expire):
 			return False
 
 		# Data in DB, set beatmap data
 		log.debug("Got beatmap data from db")
+		data["difficulty_std"] = self.starsStd
+		data["difficulty_taiko"] = self.starsTaiko
+		data["difficulty_ctb"] = self.starsCtb
+		data["difficulty_mania"] = self.starsMania
 		self.setDataFromDict(data)
 		self.rating = data["rating"]	# db only, we don't want the rating from osu! api.
 		return True
@@ -168,14 +172,13 @@ class beatmap:
 		data -- data dictionary
 		return -- True if set, False if not set
 		"""
-		self.songName = data["song_name"]
-		self.fileMD5 = data["beatmap_md5"]
-		self.rankedStatus = int(data["ranked"])
-		self.rankedStatusFrozen = int(data["ranked_status_freezed"])
-		self.beatmapID = int(data["beatmap_id"])
-		self.beatmapSetID = int(data["beatmapset_id"])
-		self.AR = float(data["ar"])
-		self.OD = float(data["od"])
+		self.songName = data["title"]
+		self.checksum = data["checksum"]
+		self.approved = int(data["approved"])
+		self.beatmapId = int(data["beatmap_id"])
+		self.beatmapSetId = int(data["beatmapset_id"])
+		self.diff_approach = float(data["diff_approach"])
+		self.diff_overall = float(data["diff_overall"])
 		self.starsStd = float(data["difficulty_std"])
 		self.starsTaiko = float(data["difficulty_taiko"])
 		self.starsCtb = float(data["difficulty_ctb"])
@@ -183,7 +186,7 @@ class beatmap:
 		self.maxCombo = int(data["max_combo"])
 		self.hitLength = int(data["hit_length"])
 		self.bpm = int(data["bpm"])
-		self.disablePP = bool(data["disable_pp"])
+		self.disablePP = False
 		# Ranking panel statistics
 		self.playcount = int(data["playcount"]) if "playcount" in data else 0
 		self.passcount = int(data["passcount"]) if "passcount" in data else 0
