@@ -116,7 +116,7 @@ class handler(requestsManager.asyncRequestHandler):
 				"pp": [x for x in returnPP] if type(returnPP) is list else returnPP,
 				"game_mode": gameMode,
 				"length": bmap.hit_length,
-				"stars": bmap.starsStd if bmap.starsStd is not None elsae bmap.difficultyrating,
+				"stars": bmap.starsStd if bmap.starsStd is not None else bmap.difficultyrating,
 				"ar": bmap.diff_approach,
 				"bpm": bmap.bpm,
 			}

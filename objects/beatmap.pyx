@@ -314,10 +314,10 @@ class beatmap:
 		self.filename = "{} - {} ({}) [{}].osu".format(
 			mainData["artist"], mainData["title"], mainData["creator"], mainData["version"]
 		).replace("\\", "")
-		saveDataFromApi(self.filename, dataStd)
-		saveDataFromApi(self.filename, dataTaiko)
-		saveDataFromApi(self.filename, dataCtb)
-		saveDataFromApi(self.filename, dataMania)
+		self.saveDataFromApi(self.filename, dataStd)
+		self.saveDataFromApi(self.filename, dataTaiko)
+		self.saveDataFromApi(self.filename, dataCtb)
+		self.saveDataFromApi(self.filename, dataMania)
 		self.checksum = md5
 		self.approved = convertRankedStatus(int(mainData["approved"]))
 		self.beatmapId = int(mainData["beatmap_id"])

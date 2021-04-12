@@ -256,7 +256,7 @@ class score:
 				)
 				if r is None:
 					beatmapId = 0
-				else
+				else:
 					beatmapId = r["beatmap_id"]
 				duplicate = glob.db.fetch(
 					"SELECT score_id FROM osu_scores{} ".format(gameModes.getGameModeForDB(self.gameMode))
