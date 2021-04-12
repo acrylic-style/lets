@@ -277,10 +277,10 @@ class score:
 				# Get right "completed" value
 				log.debug("No duplicated")
 				personalBest = glob.db.fetch(
-					"SELECT score_id, score, pp FROM osu_scores{} ".format(gameModes.getGameModeForDB(self.gameMode))
+					"SELECT score_id, score, pp FROM osu_scores{} "
 					"WHERE user_id = %s AND beatmap_id = %s "
 					"AND pass = 1 "
-					"LIMIT 1",
+					"LIMIT 1".format(gameModes.getGameModeForDB(self.gameMode)),
 					(userID, beatmapId)
 				)
 				if personalBest is None:
