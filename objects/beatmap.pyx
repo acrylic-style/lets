@@ -11,7 +11,10 @@ from helpers.generalHelper import clamp
 class beatmap:
 	__slots__ = ("songName", "fileMD5", "rankedStatus", "rankedStatusFrozen", "beatmapID", "beatmapSetID", "offset",
 	             "rating", "starsStd", "starsTaiko", "starsCtb", "starsMania", "AR", "OD", "maxCombo", "hitLength",
-	             "bpm", "playcount" ,"passcount", "refresh", "fileName")
+	             "bpm", "playcount" ,"passcount", "refresh", "filename", "beatmapId", "beatmapSetId", "userId",
+	             "checksum", "version", "total_length", "hit_length", "countTotal", "countNormal", "countSlider", "countSpinner",
+	             "diff_drain", "diff_size", "diff_overall", "diff_approach", "playmode", "approved", "last_update", "difficultyrating",
+	             "orphaned", "youtube_preview", "score_version", "deleted_at")
 
 	def __init__(self, md5 = None, beatmapSetID = None, gameMode = 0, refresh=False, fileName=None):
 		"""
@@ -62,15 +65,15 @@ class beatmap:
 		"""
 		# Make sure the beatmap is not already in db
 		bdata = objects.glob.db.fetch(
-			"SELECT beatmap_id, `approved`, FROM osu_beatmaps "
+			"SELECT beatmap_id, `approved` FROM osu_beatmaps "
 			"WHERE checksum = %s OR beatmap_id = %s LIMIT 1",
 			(self.checksum, self.beatmapId)
 		)
 		if bdata is not None:
 			# This beatmap is already in db, remove old record
 			self.approved = bdata["approved"]
-			log.debug("Deleting old beatmap data ({})".format(bdata["id"]))
-			objects.glob.db.execute("DELETE FROM beatmaps WHERE id = %s LIMIT 1", [bdata["id"]])
+			log.debug("Deleting old beatmap data ({})".format(bdata["beatmap_id"]))
+			objects.glob.db.execute("DELETE FROM osu_beatmaps WHERE beatmap_id = %s LIMIT 1", [bdata["beatmap_id"]])
 
 		# Add new beatmap data
 		log.debug("Saving beatmap data in db...")
@@ -103,8 +106,8 @@ class beatmap:
 			self.deleted_at,
 			clamp(self.bpm, -2147483648, 2147483647)
 		]
-		if self.fileName is not None:
-			params.append(self.fileName)
+		if self.filename is not None:
+			params.append(self.filename)
 		objects.glob.db.execute(
 			"INSERT INTO `osu_beatmaps` (`beatmap_id`, `beatmapset_id`, `user_id`, `filename`, `checksum`, `version`, `total_length`, `hit_length`, `countTotal`, "
 			"`countNormal`, `countSldier`, `countSpinner`, `diff_drain`, `diff_size`, `diff_overall`, `diff_approach`, `playmode`, `approved`, `last_update`, "
@@ -136,7 +139,7 @@ class beatmap:
 			"SELECT osu_beatmapsets.approved, osu_beatmapsets.last_update, osu_beatmapsets.rating, osu_beatmapsets.title, osu_beatmaps.checksum, "
 			"osu_beatmaps.hit_length, osu_beatmaps.difficultyrating, osu_beatmaps.bpm, osu_beatmaps.countNormal, osu_beatmaps.countSlider, "
 			"osu_beatmaps.countSpinner, osu_beatmaps.diff_drain, osu_beatmaps.diff_size, osu_beatmaps.diff_overall, osu_beatmaps.diff_approach, "
-			"osu_beatmaps.playcount, osu_beatmaps.passcount "
+			"osu_beatmaps.playcount, osu_beatmaps.passcount, osu_beatmaps.approved "
 			"FROM osu_beatmaps LEFT JOIN osu_beatmapsets ON osu_beatmapsets.beatmapset_id = osu_beatmaps.beatmapset_id WHERE osu_beatmaps.checksum = %s LIMIT 1",
 			[md5]
 		)
@@ -153,7 +156,7 @@ class beatmap:
 			expire *= 3
 
 		# Make sure the beatmap data in db is not too old
-		if int(expire) > 0 and time.time() > int(data["last_update"]/1000)+int(expire):
+		if int(expire) > 0 and time.time() > int(int(time.mktime(time.strptime(data["last_update"], "%Y-%m-%d %H:%M:%S"))*1000)/1000)+int(expire):
 			return False
 
 		# Data in DB, set beatmap data
@@ -218,7 +221,7 @@ class beatmap:
 				data["diff_overall"],
 				data["diff_approach"],
 				data["mode"],
-				data["approach"],
+				data["approved"],
 				data["last_update"],
 				data["difficultyrating"],
 				data["playcount"],
@@ -230,7 +233,7 @@ class beatmap:
 			"INSERT IGNORE INTO osu_beatmapsets (`beatmapset_id`, `user_id`, `artist`, `artist_unicode`, `title`, `title_unicode`, `creator`, `source`, "
 			"`tags`, `video`, `storyboard`, `bpm`, `approved`, `approved_date`, `submit_date`, `filename`, `download_disabled`, "
 			"`rating`, `favourite_count`, `genre_id`, `language_id`"
-			") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+			") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '', %s, %s, %s, %s, %s)",
 			(
 				data["beatmapset_id"],
 				data["creator_id"],
@@ -247,7 +250,6 @@ class beatmap:
 				data["approved"],
 				data["approved_date"],
 				data["submit_date"],
-				data["last_update"],
 				data["download_unavailable"],
 				data["rating"],
 				data["favourite_count"],
