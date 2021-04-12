@@ -45,7 +45,9 @@ class handler(requestsManager.asyncRequestHandler):
 			if action == "get":
 				self.write(self._getComments())
 			elif action == "post":
-				self._addComment()
+				# TODO: How do we get gamemode needed to fetch score?
+				# disabled for now
+				# self._addComment()
 		except (exceptions.loginFailedException, exceptions.need2FAException, exceptions.userBannedException):
 			self.write("error: no")
 
@@ -124,15 +126,15 @@ class handler(requestsManager.asyncRequestHandler):
 		# Type of comment
 		who = "normal"
 		if target == "replay" and glob.db.fetch(
-				"SELECT COUNT(*) AS c FROM scores WHERE id = %s AND userid = %s AND completed = 3",
+				"SELECT COUNT(*) AS c FROM osu_scores WHERE id = %s AND user_id = %s AND pass = 1",
 				(scoreID, userID)
 		)["c"] > 0:
 			# From player, on their score
 			who = "player"
-		elif userUtils.isInAnyPrivilegeGroup(userID, ("developer", "community manager", "bat")):
+		elif userUtils.isInAnyPrivilegeGroup(userID, ("dev", "gmt", "nat")):
 			# From BAT/Admin
 			who = "admin"
-		elif userUtils.isInPrivilegeGroup(userID, "donor"):
+		elif userUtils.isInPrivilegeGroup(userID, "supporter"):
 			# Supporter
 			who = "donor"
 

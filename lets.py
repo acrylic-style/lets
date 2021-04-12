@@ -199,7 +199,7 @@ def main():
 			if glob.conf["BEATMAP_CACHE_EXPIRE"] > 0:
 				logging.warning(
 					"IMPORTANT! Your beatmapcacheexpire in config.ini is > 0 and osu!api "
-					"features are disabled.\nWe do not reccoment this, because too old "
+					"features are disabled.\nWe do not recommend this, because too old "
 					"beatmaps will be shown as unranked.\nSet beatmapcacheexpire to 0 to "
 					"disable beatmap latest update check and fix that issue."
 				)

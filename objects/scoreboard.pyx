@@ -84,7 +84,7 @@ class scoreboard:
 			"isRelax": self.isRelax
 		})
 		if id_ is None:
-			return None
+			return 1
 		return id_["id"]
 
 	def setScores(self):
@@ -266,7 +266,7 @@ class scoreboard:
 			join_stats = "JOIN users_stats ON users.id = users_stats.id"
 		else:
 			join_stats = ""
-		query = f"""SELECT COUNT(*) AS rank FROM scores
+		query = f"""SELECT COUNT(*) AS `rank` FROM scores
 		JOIN users ON scores.userid = users.id
 		{join_stats}
 		WHERE scores.score >= (

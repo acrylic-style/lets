@@ -22,8 +22,12 @@ def toDotTicks(unixTime):
 
 
 def _getRawReplayFailedLocal(scoreID):
-	with open(os.path.join(glob.conf["FAILED_REPLAYS_FOLDER"], "replay_{}.osr".format(scoreID)), "rb") as f:
-		return f.read()
+	try:
+		with open(os.path.join(glob.conf["FAILED_REPLAYS_FOLDER"], "replay_{}.osr".format(scoreID)), "rb") as f:
+			return f.read()
+	except FileNotFoundError:
+		with open(os.path.join(glob.conf["REPLAYS_FOLDER"], "replay_{}.osr".format(scoreID)), "rb") as f:
+			return f.read()
 
 
 @timeout(5, use_signals=False)
@@ -74,12 +78,34 @@ def buildFullReplay(scoreID=None, scoreData=None, rawReplay=None):
 	if all(v is None for v in (scoreID, scoreData)) or all(v is not None for v in (scoreID, scoreData)):
 		raise AttributeError("Either scoreID or scoreData must be provided, not neither or both")
 
+	mode = 0
 	if scoreData is None:
 		scoreData = glob.db.fetch(
-			"SELECT scores.*, users.username FROM scores LEFT JOIN users ON scores.userid = users.id "
-			"WHERE scores.id = %s",
+			"SELECT osu_scores.*, phpbb_users.username FROM osu_scores LEFT JOIN phpbb_users ON osu_scores.user_id = phpbb_users.user_id "
+			"WHERE osu_scores.score_id = %s",
 			[scoreID]
 		)
+		if scoreData is None:
+			mode = 1
+			scoreData = glob.db.fetch(
+				"SELECT osu_scores_taiko.*, phpbb_users.username FROM osu_scores_taiko LEFT JOIN phpbb_users ON osu_scores_taiko.user_id = phpbb_users.user_id "
+				"WHERE osu_scores_taiko.score_id = %s",
+				[scoreID]
+			)
+			if scoreData is None:
+				mode = 2
+				scoreData = glob.db.fetch(
+					"SELECT osu_scores_fruits.*, phpbb_users.username FROM osu_scores_fruits LEFT JOIN phpbb_users ON osu_scores_fruits.user_id = phpbb_users.user_id "
+					"WHERE osu_scores_fruits.score_id = %s",
+					[scoreID]
+				)
+				if scoreData is None:
+					mode = 3
+					scoreData = glob.db.fetch(
+						"SELECT osu_scores_mania.*, phpbb_users.username FROM osu_scores_mania LEFT JOIN phpbb_users ON osu_scores_mani.user_id = phpbb_users.user_id "
+						"WHERE osu_scores_mania.score_id = %s",
+						[scoreID]
+					)
 	else:
 		scoreID = scoreData["id"]
 	if scoreData is None or scoreID is None:
@@ -91,50 +117,51 @@ def buildFullReplay(scoreID=None, scoreData=None, rawReplay=None):
 
 	# Calculate missing replay data
 	rank = generalUtils.getRank(
-		int(scoreData["play_mode"]),
+		int(mode),
 		int(scoreData["mods"]),
 		int(scoreData["accuracy"]),
-		int(scoreData["300_count"]),
-		int(scoreData["100_count"]),
-		int(scoreData["50_count"]),
-		int(scoreData["misses_count"])
+		int(scoreData["count300"]),
+		int(scoreData["count100"]),
+		int(scoreData["count50"]),
+		int(scoreData["countmiss"])
 	)
+	checksum = glob.db.fetch("SELECT checksum FROM osu_beatmaps WHERE beatmap_id = %s LIMIT 1", (scoreData["beatmap_id"]))
 	magicHash = generalUtils.stringMd5(
 		"{}p{}o{}o{}t{}a{}r{}e{}y{}o{}u{}{}{}".format(
-			int(scoreData["100_count"]) + int(scoreData["300_count"]),
-			scoreData["50_count"],
-			scoreData["gekis_count"],
-			scoreData["katus_count"],
-			scoreData["misses_count"],
-			scoreData["beatmap_md5"],
-			scoreData["max_combo"],
-			"True" if int(scoreData["full_combo"]) == 1 else "False",
+			int(scoreData["count100"]) + int(scoreData["count300"]),
+			scoreData["count50"],
+			scoreData["countgeki"],
+			scoreData["countkatu"],
+			scoreData["countmiss"],
+			checksum,
+			scoreData["maxcombo"],
+			"True" if int(scoreData["perfect"]) == 1 else "False", # TODO: check whether full combo or not (or "perfect" means "full combo"?)
 			scoreData["username"],
 			scoreData["score"],
 			rank,
-			scoreData["mods"],
+			scoreData["enabled_mods"],
 			"True"
 		)
 	)
 	# Add headers (convert to full replay)
 	fullReplay = binaryHelper.binaryWrite([
-		[scoreData["play_mode"], dataTypes.byte],
+		[mode, dataTypes.byte],
 		[20150414, dataTypes.uInt32],
-		[scoreData["beatmap_md5"], dataTypes.string],
+		[scoreData["checksum"], dataTypes.string],
 		[scoreData["username"], dataTypes.string],
 		[magicHash, dataTypes.string],
-		[scoreData["300_count"], dataTypes.uInt16],
-		[scoreData["100_count"], dataTypes.uInt16],
-		[scoreData["50_count"], dataTypes.uInt16],
-		[scoreData["gekis_count"], dataTypes.uInt16],
-		[scoreData["katus_count"], dataTypes.uInt16],
-		[scoreData["misses_count"], dataTypes.uInt16],
+		[scoreData["count300"], dataTypes.uInt16],
+		[scoreData["count100"], dataTypes.uInt16],
+		[scoreData["count50"], dataTypes.uInt16],
+		[scoreData["countgeki"], dataTypes.uInt16],
+		[scoreData["countkatu"], dataTypes.uInt16],
+		[scoreData["countmiss"], dataTypes.uInt16],
 		[scoreData["score"], dataTypes.uInt32],
-		[scoreData["max_combo"], dataTypes.uInt16],
-		[scoreData["full_combo"], dataTypes.byte],
-		[scoreData["mods"], dataTypes.uInt32],
+		[scoreData["maxcombo"], dataTypes.uInt16],
+		[scoreData["perfect"], dataTypes.byte],
+		[scoreData["enabled_mods"], dataTypes.uInt32],
 		[0, dataTypes.byte],
-		[toDotTicks(int(scoreData["time"])), dataTypes.uInt64],
+		[toDotTicks(int(scoreData["date"])), dataTypes.uInt64],
 		[rawReplay, dataTypes.rawReplay],
 		[0, dataTypes.uInt32],
 		[0, dataTypes.uInt32],

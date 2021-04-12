@@ -78,17 +78,18 @@ class handler(requestsManager.asyncRequestHandler):
 			bmap = beatmap.beatmap(beatmapMd5, beatmapSetID)
 
 			# Check beatmap length
-			if bmap.hitLength > 900:
+			# TODO: Why do we do this?
+			if bmap.hit_length > 900:
 				raise exceptions.beatmapTooLongException(self.MODULE_NAME)
 
 			if gameMode == gameModes.STD and bmap.starsStd == 0:
-				# Mode Specific beatmap, auto detect game mode
-				if bmap.starsTaiko > 0:
-					gameMode = gameModes.TAIKO
-				if bmap.starsCtb > 0:
-					gameMode = gameModes.CTB
-				if bmap.starsMania > 0:
-					gameMode = gameModes.MANIA
+					# Mode Specific beatmap, auto detect game mode
+					if bmap.starsTaiko > 0:
+						gameMode = gameModes.TAIKO
+					if bmap.starsCtb > 0:
+						gameMode = gameModes.CTB
+					if bmap.starsMania > 0:
+						gameMode = gameModes.MANIA
 
 			# Calculate pp
 			if gameMode in (gameModes.STD, gameModes.TAIKO):
@@ -114,9 +115,9 @@ class handler(requestsManager.asyncRequestHandler):
 				"song_name": bmap.songName,
 				"pp": [x for x in returnPP] if type(returnPP) is list else returnPP,
 				"game_mode": gameMode,
-				"length": bmap.hitLength,
-				"stars": bmap.starsStd,
-				"ar": bmap.AR,
+				"length": bmap.hit_length,
+				"stars": bmap.starsStd if bmap.starsStd is not None elsae bmap.difficultyrating,
+				"ar": bmap.diff_approach,
 				"bpm": bmap.bpm,
 			}
 

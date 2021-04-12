@@ -2,6 +2,7 @@ import math
 import time
 
 import pp
+from common import generalUtils
 from common.constants import gameModes, mods
 from constants import scoreOverwrite
 from objects import beatmap
@@ -143,7 +144,7 @@ class score:
 		scoreID -- score ID
 		rank -- rank in scoreboard. Optional.
 		"""
-		data = glob.db.fetch("SELECT scores.*, users.username FROM scores LEFT JOIN users ON users.id = scores.userid WHERE scores.id = %s LIMIT 1", [scoreID])
+		data = glob.db.fetch("SELECT osu_scores.*, phpbb_users.username FROM osu_scores LEFT JOIN phpbb_users ON phpbb_users.user_id = osu_scores.user_id WHERE osu_scores.score_id = %s LIMIT 1", [scoreID])
 		if data is not None:
 			self.setDataFromDict(data, rank)
 
@@ -155,27 +156,27 @@ class score:
 		data -- score dictionarty
 		rank -- rank in scoreboard. Optional.
 		"""
-		self.scoreID = data["id"]
+		self.scoreID = data["score_id"]
 		if "username" in data:
 			self.playerName = data["username"]
 		else:
-			self.playerName = userUtils.getUsername(data["userid"])
-		self.playerUserID = data["userid"]
+			self.playerName = userUtils.getUsername(data["user_id"])
+		self.playerUserID = data["user_id"]
 		self.score = data["score"]
-		self.maxCombo = data["max_combo"]
+		self.maxCombo = data["maxcombo"]
 		self.gameMode = data["play_mode"]
-		self.c50 = data["50_count"]
-		self.c100 = data["100_count"]
-		self.c300 = data["300_count"]
-		self.cMiss = data["misses_count"]
-		self.cKatu = data["katus_count"]
-		self.cGeki = data["gekis_count"]
-		self.fullCombo = data["full_combo"] == 1
-		self.mods = data["mods"]
+		self.c50 = data["count50"]
+		self.c100 = data["count100"]
+		self.c300 = data["count300"]
+		self.cMiss = data["countmiss"]
+		self.cKatu = data["countkatu"]
+		self.cGeki = data["countgeki"]
+		self.fullCombo = data["perfect"] == 1
+		self.mods = data["enabled_mods"]
 		self.rank = rank if rank is not None else ""
-		self.date = data["time"]
+		self.date = data["date"]
 		self.fileMd5 = data["beatmap_md5"]
-		self.completed = data["completed"]
+		self.completed = 3 if data["pass"] == 1 else 0
 		#if "pp" in data:
 		self.pp = data["pp"]
 		self.calculateAccuracy()
@@ -225,7 +226,7 @@ class score:
 			self.cMiss,
 			self.cKatu,
 			self.cGeki,
-			self.fullCombo,
+			1 if self.fullCombo == True else 0,
 			self.mods,
 			self.playerUserID,
 			self.rank,
@@ -249,15 +250,21 @@ class score:
 				# Make sure we don't have another score identical to this one
 				# This is problematic, consider removing it entirely,
 				# a few duplicate rows aren't going to hurt anyone
+				r = glob.db.fetch(
+					"SELECT beatmap_id FROM osu_beatmaps WHERE checksum = %s LIMIT 1",
+					(self.fileMd5)
+				)
+				if r is None:
+					beatmapId = 0
+				else
+					beatmapId = r["beatmap_id"]
 				duplicate = glob.db.fetch(
-					"SELECT id FROM scores "
-					"WHERE userid = %s AND beatmap_md5 = %s "
-					"AND is_relax = %s AND play_mode = %s "
-					"AND score = %s AND mods = %s AND `time` >= %s "
+					"SELECT score_id FROM osu_scores{} ".format(gameModes.getGameModeForDB(self.gameMode))
+					"WHERE user_id = %s AND beatmap_id = %s "
+					"AND score = %s AND enabled_mods = %s AND `date` >= %s "
 					"LIMIT 1",
 					(
-						userID, self.fileMd5, self.isRelax, self.gameMode,
-						self.score, self.mods, int(time.time()) - 120,
+						userID, beatmapId, self.score, self.mods, int(time.time()) - 120,
 					)
 				)
 				if duplicate is not None:
@@ -270,12 +277,11 @@ class score:
 				# Get right "completed" value
 				log.debug("No duplicated")
 				personalBest = glob.db.fetch(
-					"SELECT id, score, pp FROM scores "
-					"WHERE userid = %s AND beatmap_md5 = %s "
-					"AND is_relax = %s AND play_mode = %s "
-					"AND completed = 3 "
+					"SELECT score_id, score, pp FROM osu_scores{} ".format(gameModes.getGameModeForDB(self.gameMode))
+					"WHERE user_id = %s AND beatmap_id = %s "
+					"AND pass = 1 "
 					"LIMIT 1",
-					(userID, self.fileMd5, self.isRelax, self.gameMode)
+					(userID, beatmapId)
 				)
 				if personalBest is None:
 					# This is our first score on this map, so it's our best score
@@ -309,12 +315,20 @@ class score:
 		"""
 		# Add this score
 		if self.completed >= 0:
-			query = "INSERT INTO scores (id, beatmap_md5, userid, score, max_combo, full_combo, mods, 300_count, 100_count, 50_count, katus_count, gekis_count, misses_count, `time`, play_mode, playtime, completed, accuracy, pp) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
-			self.scoreID = int(glob.db.execute(query, [self.fileMd5, userUtils.getID(self.playerName), self.score, self.maxCombo, int(self.fullCombo), self.mods, self.c300, self.c100, self.c50, self.cKatu, self.cGeki, self.cMiss, self.playDateTime, self.gameMode, self.playTime if self.playTime is not None and not self.passed else self.fullPlayTime, self.completed, self.accuracy * 100, self.pp]))
+			bm = glob.db.fetch(
+				"SELECT beatmap_id, beatmapset_id FROM osu_beatmaps WHERE checksum = %s LIMIT 1",
+				(self.fileMd5)
+			)
+			if bm is None:
+				# No beatmap information available, cannot continue
+				return
+			rank = generalUtils.getRank(_score=self)
+			query = "INSERT INTO osu_scores{}_high (scorechecksum, beatmap_id, beatmapset_id, user_id, score, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, perfect, enabled_mods, pass, date, pp) VALUES (0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gameModes.getGameModeForDB(self.gameMode))
+			self.scoreID = int(glob.db.execute(query, [bm["beatmap_id"], bm["beatmapset_id"],, userUtils.getID(self.playerName), self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, int(self.passed), self.playDateTime, self.pp]))
 
 			# Set old personal best to completed = 2
-			if self.oldPersonalBest != 0 and self.completed == 3:
-				glob.db.execute("UPDATE scores SET completed = 2 WHERE id = %s AND completed = 3 LIMIT 1", [self.oldPersonalBest])
+			# if self.oldPersonalBest != 0 and self.completed == 3:
+			# 	glob.db.execute("UPDATE scores SET completed = 2 WHERE id = %s AND completed = 3 LIMIT 1", [self.oldPersonalBest])
 
 			# Update counters in redis
 			glob.redis.incr("ripple:total_submitted_scores", 1)

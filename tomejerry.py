@@ -225,7 +225,7 @@ class Worker:
             for score_id in self.pool_iter:
                 # Fetch score and beatmap data for this id
                 cursor.execute(
-                    "SELECT * FROM scores JOIN beatmaps USING(beatmap_md5) WHERE scores.id = %s LIMIT 1",
+                    "SELECT * FROM scores JOIN osu_beatmaps USING(checksum) WHERE osu_scores.id = %s LIMIT 1",
                     (score_id,)
                 )
                 score_ = cursor.fetchone()

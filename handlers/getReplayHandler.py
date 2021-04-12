@@ -43,7 +43,7 @@ class handler(requestsManager.asyncRequestHandler):
 				raise exceptions.need2FAException(self.MODULE_NAME, username, ip)
 
 			# Get user ID
-			replayData = glob.db.fetch("SELECT scores.*, users.username AS uname FROM scores LEFT JOIN users ON scores.userid = users.id WHERE scores.id = %s", [replayID])
+			replayData = glob.db.fetch("SELECT osu_scores.*, phpbb_users.username AS uname FROM osu_scores LEFT JOIN phpbb_users ON osu_scores.user_id = phpbb_users.user_id WHERE osu_scores.score_id = %s", [replayID])
 
 			# Increment 'replays watched by others' if needed
 			if replayData is not None:

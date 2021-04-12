@@ -188,7 +188,7 @@ class handler(requestsManager.asyncRequestHandler):
 				return
 
 			# Restrict obvious cheaters
-			if s.pp >= 800 and s.gameMode == gameModes.STD and not restricted and not s.isRelax:
+			if s.pp >= 1500 and s.gameMode == gameModes.STD and not restricted and not s.isRelax:
 				userUtils.restrict(userID)
 				userUtils.appendNotes(userID, "Restricted due to too high pp gain ({}pp)".format(s.pp))
 				log.cm(

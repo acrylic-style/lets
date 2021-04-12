@@ -45,10 +45,10 @@ class handler(requestsManager.asyncRequestHandler):
 				# TODO: reimplement? actually, this seems to be unused
 				pp = 0
 				data["maps"].append({
-					"id": bmap.beatmapID,
+					"id": bmap.beatmapId,
 					"name": bmap.songName,
-					"status": bmap.rankedStatus,
-					"frozen": bmap.rankedStatusFrozen,
+					"status": bmap.approved,
+					"frozen": False,
 					"pp": pp,
 				})
 

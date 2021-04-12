@@ -57,7 +57,7 @@ class handler(requestsManager.asyncRequestHandler):
 			userUtils.updateLatestActivity(userID)
 
 			# Get country and output it
-			country = glob.db.fetch("SELECT country FROM users_stats WHERE id = %s", [userID])["country"]
+			country = glob.db.fetch("SELECT country_acronym FROM phpbb_users WHERE user_id = %s", [userID])["country_acronym"]
 			self.write(country)
 		except exceptions.invalidArgumentsException:
 			pass
