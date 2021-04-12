@@ -144,22 +144,22 @@ class beatmap:
 		mania = objects.glob.db.fetch("SELECT difficultyrating FROM osu_beatmaps WHERE checksum = %s AND osu_beatmaps.playmode = 3 LIMIT 1", [md5])
 
 		if std is not None:
-			self.starsStd = std.difficultyrating
+			self.starsStd = std["difficultyrating"]
 		else:
 			self.starsStd = 0
 
 		if taiko is not None:
-			self.starsTaiko = taiko.difficultyrating
+			self.starsTaiko = taiko["difficultyrating"]
 		else:
 			self.starsTaiko = 0
 
 		if ctb is not None:
-			self.starsCtb = ctb.difficultyrating
+			self.starsCtb = ctb["difficultyrating"]
 		else:
 			self.starsCtb = 0
 
 		if mania is not None:
-			self.starsMania = mania.difficultyrating
+			self.starsMania = mania["difficultyrating"]
 		else:
 			self.starsMania = 0
 
@@ -196,6 +196,7 @@ class beatmap:
 		data["difficulty_taiko"] = self.starsTaiko
 		data["difficulty_ctb"] = self.starsCtb
 		data["difficulty_mania"] = self.starsMania
+		data["max_combo"] = data["countNormal"] + data["countSlider"] + data["countSpinner"]
 		self.setDataFromDict(data)
 		self.rating = data["rating"]	# db only, we don't want the rating from osu! api.
 		return True
@@ -221,7 +222,6 @@ class beatmap:
 		self.maxCombo = int(data["max_combo"])
 		self.hitLength = int(data["hit_length"])
 		self.bpm = int(data["bpm"])
-		self.disablePP = False
 		# Ranking panel statistics
 		self.playcount = int(data["playcount"]) if "playcount" in data else 0
 		self.passcount = int(data["passcount"]) if "passcount" in data else 0
@@ -255,7 +255,7 @@ class beatmap:
 				data["diff_overall"],
 				data["diff_approach"],
 				data["mode"],
-				data["approved"],
+				convertRankedStatus(int(data["approved"])),
 				data["last_update"],
 				data["difficultyrating"],
 				data["playcount"],
