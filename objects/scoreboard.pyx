@@ -255,17 +255,17 @@ class scoreboard:
 			join_stats = "JOIN osu_user_stats{} ON phpbb_users.user_id = osu_user_stats{}.user_id".format(gm, gm)
 		else:
 			join_stats = ""
-		query = f"""SELECT COUNT(*) AS `rank` FROM osu_scores{}_high
-		JOIN phpbb_users ON osu_scores{}_high.user_id = phpbb_users.user_id
+		query = f"""SELECT COUNT(*) AS `rank` FROM osu_scores{gm}_high
+		JOIN phpbb_users ON osu_scores{gm}_high.user_id = phpbb_users.user_id
 		{join_stats}
-		WHERE osu_scores{}_high.score >= (
-			SELECT score FROM osu_scores{}_high
+		WHERE osu_scores{gm}_high.score >= (
+			SELECT score FROM osu_scores{gm}_high
 			WHERE beatmap_id = %(bid)s
 			AND user_id = %(userid)s
 			LIMIT 1
 		)
-		AND osu_scores{}_high.beatmap_id = %(bid)s
-		AND (phpbb_users.user_type = 0 OR phpbb_users.user_id = %(userid)s)""".format(gm, gm, gm, gm, gm)
+		AND osu_scores{gm}_high.beatmap_id = %(bid)s
+		AND (phpbb_users.user_type = 0 OR phpbb_users.user_id = %(userid)s)"""
 		# Country
 		if self.country:
 			query += " AND osu_user_stats{}.country_acronym = (SELECT country_acronym FROM osu_user_stats{} WHERE user_id = %(userid)s LIMIT 1)".format(gm, gm)
