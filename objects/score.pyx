@@ -10,6 +10,7 @@ from common.log import logUtils as log
 from common.ripple import userUtils
 from common.ripple import scoreUtils
 from objects import glob
+from datetime import datetime
 
 # TODO: GIVE THEM GAMEMODE PARAM IN CONSTRUCTOR!!!!!
 class score:
