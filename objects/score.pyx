@@ -167,6 +167,8 @@ class score:
 		data -- score dictionarty
 		rank -- rank in scoreboard. Optional.
 		"""
+		if "high" not in data:
+			data["high"] = 0
 		self.scoreID = data["score_id"]
 		if "username" in data:
 			self.playerName = data["username"]
