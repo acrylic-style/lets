@@ -333,7 +333,7 @@ class score:
 		# Add this score
 		if self.completed >= 0:
 			bm = glob.db.fetch(
-				"SELECT beatmap_id, beatmapset_id FROM osu_beatmaps WHERE checksum = %s LIMIT 1",
+				"SELECT osu_beatmapsets.title, osu_beatmaps.version, osu_beatmaps.beatmap_id, osu_beatmaps.beatmapset_id FROM osu_beatmaps LEFT JOIN osu_beatmapsets ON osu_beatmapsets.beatmapset_id = osu_beatmaps.beatmapset_id WHERE osu_beatmaps.checksum = %s LIMIT 1",
 				(self.fileMd5)
 			)
 			if bm is None:
@@ -352,6 +352,23 @@ class score:
 				self.scoreID = int(glob.db.execute(query, [bm["beatmap_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), self.pp, country]))
 				# set replay id
 				glob.db.execute("UPDATE osu_scores{}_high SET `replay` = %s WHERE score_id = %s LIMIT 1".format(gm), (self.scoreID, self.scoreID,))
+				pn = self.playerName
+				bid = bm["beatmap_id"]
+				gmm = self.gameMode
+				bt = bm["title"]
+				bv = bm["version"]
+				gmf = gameModes.getGamemodeFull(gmm)
+				eventText = f"<img src='/images/{rank}_small.png'/> <b><a href='/u/{userID}'>{pn}</a></b> achieved rank # on <a href='/b/{bid}?m={gmm}'>{bt} [{bv}]</a> ({gmf})"
+				glob.db.execute(
+					"INSERT INTO osu_events (`text`, `text_clean`, `beatmap_id`, `beatmapset_id`, `user_id`) VALUES (%s, %s, %s, %s, %s)",
+					(
+						eventText,
+						eventText,
+						bm["beatmap_id"],
+						bm["beatmapset_id"],
+						userID,
+					)
+				)
 
 			query = "INSERT INTO osu_scores{} (scorechecksum, beatmap_id, beatmapset_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, high_score_id) VALUES (0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gm)
 			if self.scoreID is None or self.scoreID is 0:
