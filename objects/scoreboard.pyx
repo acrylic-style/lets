@@ -123,7 +123,7 @@ class scoreboard:
 		else:
 			join_stats = ""
 		joins = "FROM osu_scores{}_high JOIN phpbb_users " \
-				"ON osu_scores{}_high.userid = phpbb_users.user_id " \
+				"ON osu_scores{}_high.user_id = phpbb_users.user_id " \
 				f" {join_stats} " \
 				"WHERE osu_scores{}_high.beatmap_id = %(beatmap_id)s " \
 				"AND (phpbb_users.user_id = %(userid)s)".format(mode, mode, mode, mode) # this is so stupid
