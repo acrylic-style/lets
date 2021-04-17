@@ -14,7 +14,7 @@ class beatmap:
 	             "bpm", "playcount" ,"passcount", "refresh", "filename", "beatmapId", "beatmapSetId", "userId",
 	             "checksum", "version", "total_length", "hit_length", "countTotal", "countNormal", "countSlider", "countSpinner",
 	             "diff_drain", "diff_size", "diff_overall", "diff_approach", "playmode", "approved", "last_update", "difficultyrating",
-	             "orphaned", "youtube_preview", "score_version")
+	             "orphaned", "youtube_preview", "score_version", "ranked")
 
 	def __init__(self, md5 = None, beatmapSetID = None, gameMode = 0, refresh=False, fileName=None):
 		"""
@@ -50,6 +50,7 @@ class beatmap:
 		self.score_version = 0
 		self.bpm = 0
 		self.rating = 0
+		self.ranked = 0
 
 		self.songName = ""
 
@@ -71,6 +72,7 @@ class beatmap:
 		)
 		if bdata is not None:
 			# This beatmap is already in db, remove old record
+			self.ranked = bdata["approved"]
 			self.approved = convertRankedStatus(bdata["approved"])
 			log.debug("Deleting old beatmap data ({})".format(bdata["beatmap_id"]))
 			objects.glob.db.execute("DELETE FROM osu_beatmaps WHERE beatmap_id = %s LIMIT 1", [bdata["beatmap_id"]])
@@ -95,7 +97,7 @@ class beatmap:
 			self.diff_overall,
 			self.diff_approach,
 			self.playmode,
-			self.approved,
+			self.ranked,
 			self.last_update,
 			self.difficultyrating,
 			self.playcount,
@@ -198,6 +200,7 @@ class beatmap:
 		data["difficulty_ctb"] = self.starsCtb
 		data["difficulty_mania"] = self.starsMania
 		data["max_combo"] = data["countNormal"] + data["countSlider"] + data["countSpinner"]
+		self.ranked = data["approved"]
 		self.setDataFromDict(data)
 		self.rating = data["rating"]	# db only, we don't want the rating from osu! api.
 		return True
@@ -211,6 +214,7 @@ class beatmap:
 		"""
 		self.songName = data["title"]
 		self.checksum = data["checksum"]
+		self.ranked = int(data["approved"])
 		self.approved = convertRankedStatus(int(data["approved"]))
 		self.beatmapId = int(data["beatmap_id"])
 		self.beatmapSetId = int(data["beatmapset_id"])
@@ -357,6 +361,7 @@ class beatmap:
 		self.saveDataFromApi(self.filename, dataMania)
 		self.checksum = md5
 		self.last_update = mainData["last_update"]
+		self.ranked = int(mainData["approved"])
 		self.approved = convertRankedStatus(int(mainData["approved"]))
 		self.beatmapId = int(mainData["beatmap_id"])
 		self.beatmapSetId = int(mainData["beatmapset_id"])
