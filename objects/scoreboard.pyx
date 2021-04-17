@@ -43,6 +43,7 @@ class scoreboard:
 		if self.userID == 0:
 			return None
 
+		mode = gameModes.getGameModeForDB(self.gameMode)
 		# Query parts
 		cdef str select = ""
 		cdef str joins = ""
@@ -51,26 +52,23 @@ class scoreboard:
 		cdef str friends = ""
 		cdef str order = ""
 		cdef str limit = ""
-		select = "SELECT id FROM scores " \
-				 "WHERE beatmap_md5 = %(md5)s " \
-				 "AND is_relax = %(isRelax)s " \
-				 "AND play_mode = %(mode)s " \
-				 "AND completed = 3 " \
-				 "AND userid = %(userid)s "
+		select = "SELECT score_id FROM osu_scores{}_high " \
+				 "WHERE beatmap_id = %(beatmap_id)s " \
+				 "AND user_id = %(userid)s ".format(mode)
 
 		# Mods
 		if self.mods > -1:
-			mods = "AND mods = %(mods)s"
+			mods = "AND enabled_mods = %(mods)s"
 
 		# Friends ranking
 		if self.friends:
-			friends = "AND (scores.userid IN (" \
-					  "SELECT user2 FROM users_relationships " \
-					  "WHERE user1 = %(userid)s) " \
-					  "OR scores.userid = %(userid)s" \
-					  ")"
+			friends = "AND (osu_scores{}_high.user_id IN (" \
+					  "SELECT zebra_id FROM phpbb_zebra " \
+					  "WHERE user_id = %(userid)s) " \
+					  "OR osu_scores{}_high.user_id = %(userid)s" \
+					  ")".format(mode, mode)
 
-		# was 'ORDER BY score DESC'. Shouldn't be needed, because completed = 3 is already the max score/pp
+		# was 'ORDER BY score DESC'. Shouldn't be needed, because osu_scores_high is already the max score/pp
 		order = ""
 		limit = "LIMIT 1"
 
@@ -78,14 +76,12 @@ class scoreboard:
 		query = self.buildQuery(locals())
 		id_ = glob.db.fetch(query, {
 			"userid": self.userID,
-			"md5": self.beatmap.fileMD5,
-			"mode": self.gameMode,
-			"mods": self.mods,
-			"isRelax": self.isRelax
+			"beatmap_id": self.beatmap.beatmapId,
+			"mods": self.mods
 		})
 		if id_ is None:
 			return 1
-		return id_["id"]
+		return id_["score_id"]
 
 	def setScores(self):
 		"""
@@ -95,6 +91,7 @@ class scoreboard:
 		self.scores = []
 		self.scores.append(-1)
 
+		mode = gameModes.getGameModeForDB(self.gameMode)
 		# Make sure the beatmap is ranked
 		if self.beatmap.approved < rankedStatuses.RANKED:
 			return
@@ -122,55 +119,51 @@ class scoreboard:
 		# Get top 50 scores
 		select = "SELECT *"
 		if self.country:
-			join_stats = "JOIN users_stats ON users.id = users_stats.id"
+			join_stats = "JOIN osu_user_stats{} ON phpbb_users.user_id = osu_user_stats{}.user_id".format(mode, mode)
 		else:
 			join_stats = ""
-		joins = "FROM scores JOIN users " \
-				"ON scores.userid = users.id " \
+		joins = "FROM osu_scores{}_high JOIN phpbb_users " \
+				"ON osu_scores{}_high.userid = phpbb_users.user_id " \
 				f" {join_stats} " \
-				"WHERE scores.beatmap_md5 = %(beatmap_md5)s " \
-				"AND scores.is_relax = %(isRelax)s " \
-				"AND scores.play_mode = %(play_mode)s " \
-				"AND scores.completed = 3 " \
-				"AND (users.is_public = 1 OR users.id = %(userid)s)"
+				"WHERE osu_scores{}_high.beatmap_id = %(beatmap_id)s " \
+				"AND (phpbb_users.user_id = %(userid)s)".format(mode, mode, mode, mode) # this is so stupid
 
 		# Country ranking
 		if self.country:
-			country = "AND users_stats.country = (SELECT country FROM users_stats WHERE id = %(userid)s LIMIT 1)"
+			country = "AND osu_user_stats{}.country_acronym = (SELECT country_acronym FROM osu_user_stats{} WHERE user_id = %(userid)s LIMIT 1)".format(mode, mode)
 		else:
 			country = ""
 
 		# Mods ranking (ignore auto, since we use it for pp sorting)
 		if self.mods > -1 and self.mods & modsEnum.AUTOPLAY == 0:
-			mods = "AND scores.mods = %(mods)s"
+			mods = "AND osu_scores{}_high.enabled_mods = %(mods)s".format(mode)
 		else:
 			mods = ""
 
 		# Friends ranking
 		if self.friends:
-			friends = "AND (scores.userid IN (" \
-					  "SELECT user2 FROM users_relationships " \
-					  "WHERE user1 = %(userid)s) " \
-					  "OR scores.userid = %(userid)s" \
-					  ")"
+			friends = "AND (osu_scores{}_high.user_id IN (" \
+					  "SELECT zebra_id FROM phpbb_zebra " \
+					  "WHERE user_id = %(userid)s) " \
+					  "OR osu_scores{}_high.user_id = %(userid)s" \
+					  ")".format(mode, mode)
 		else:
 			friends = ""
 
 		# Sort and limit at the end
-		if self.display == displayModes.PP:
-			order = "ORDER BY pp DESC"
-		else:
-			order = "ORDER BY score DESC"
+		#if self.display == displayModes.PP:
+		#	order = "ORDER BY pp DESC"
+		#else:
+		order = "ORDER BY score DESC"
 		limit = "LIMIT 50"
 
 		# Build query, get params and run query
 		query = self.buildQuery(locals())
 		params = {
-			"beatmap_md5": self.beatmap.fileMD5,
-			"play_mode": self.gameMode,
+			"beatmap_md5": self.beatmap.checksum,
+			"beatmap_id": self.beatmap.beatmapId,
 			"userid": self.userID,
 			"mods": self.mods,
-			"isRelax": int(self.isRelax)
 		}
 		topScores = glob.db.fetchAll(query, params)
 
@@ -212,7 +205,7 @@ class scoreboard:
 		if personalBestScoreID is not None and self.personalBestRank < 1:
 			self.personalBestRank = glob.personalBestCache.get(
 				self.userID,
-				self.beatmap.fileMD5,
+				self.beatmap.checksum,
 				self.country,
 				self.friends,
 				self.mods
@@ -228,33 +221,29 @@ class scoreboard:
 			glob.personalBestCache.set(self.userID, self.personalBestRank, self.beatmap.fileMD5, relax=self.isRelax)
 
 	def setPersonalBestRank(self):
+		gm = gameModes.getGameModeForDB(self.gameMode)
 		# Before running the HUGE query, make sure we have a score on that map
-		cdef str query = "SELECT id FROM scores " \
-						 "WHERE beatmap_md5 = %(md5)s " \
-						 "AND is_relax = %(isRelax)s " \
-						 "AND play_mode = %(mode)s " \
-						 "AND completed = 3 " \
-						 "AND userid = %(userid)s "
+		cdef str query = "SELECT id FROM osu_scores{}_high " \
+						 "WHERE beatmap_id = %(bid)s " \
+						 "AND user_id = %(userid)s ".format(gm)
 		# Mods
 		if self.mods > -1:
-			query += " AND scores.mods = %(mods)s"
+			query += " AND osu_scores{}_high.enabled_mods = %(mods)s".format(gm)
 		# Friends ranking
 		if self.friends:
-			query += " AND (scores.userid IN (" \
-					 "SELECT user2 FROM users_relationships " \
-					 "WHERE user1 = %(userid)s) " \
-					 "OR scores.userid = %(userid)s" \
-					 ")"
+			query += " AND (osu_scores{}_high.user_id IN (" \
+					 "SELECT zebra_id FROM phpbb_zebra " \
+					 "WHERE user_id = %(userid)s) " \
+					 "OR osu_scores{}_high.user_id = %(userid)s" \
+					 ")".format(gm, gm)
 		# Sort and limit at the end
 		query += " LIMIT 1"
 		hasScore = glob.db.fetch(
 			query,
 			{
-				"md5": self.beatmap.fileMD5,
+				"bid": self.beatmap.beatmapId,
 				"userid": self.userID,
-				"mode": self.gameMode,
-				"mods": self.mods,
-				"isRelax": int(self.isRelax)
+				"mods": self.mods
 			}
 		)
 		if hasScore is None:
@@ -263,49 +252,42 @@ class scoreboard:
 		# We have a score, run the huge query
 		# Base query
 		if self.country:
-			join_stats = "JOIN users_stats ON users.id = users_stats.id"
+			join_stats = "JOIN osu_user_stats{} ON phpbb_users.user_id = osu_user_stats{}.user_id".format(gm, gm)
 		else:
 			join_stats = ""
-		query = f"""SELECT COUNT(*) AS `rank` FROM scores
-		JOIN users ON scores.userid = users.id
+		query = f"""SELECT COUNT(*) AS `rank` FROM osu_scores{}_high
+		JOIN phpbb_users ON osu_scores{}_high.user_id = phpbb_users.user_id
 		{join_stats}
-		WHERE scores.score >= (
-			SELECT score FROM scores
-			WHERE beatmap_md5 = %(md5)s
-			AND scores.is_relax = %(isRelax)s
-			AND play_mode = %(mode)s
-			AND completed = 3
-			AND userid = %(userid)s
+		WHERE osu_scores{}_high.score >= (
+			SELECT score FROM osu_scores{}_high
+			WHERE beatmap_id = %(bid)s
+			AND user_id = %(userid)s
 			LIMIT 1
 		)
-		AND scores.beatmap_md5 = %(md5)s
-		AND scores.is_relax = %(isRelax)s
-		AND scores.play_mode = %(mode)s
-		AND scores.completed = 3
-		AND (users.is_public = 1 OR users.id = %(userid)s)"""
+		AND osu_scores{}_high.beatmap_id = %(bid)s
+		AND (phpbb_users.user_type = 0 OR phpbb_users.user_id = %(userid)s)""".format(gm, gm, gm, gm, gm)
 		# Country
 		if self.country:
-			query += " AND users_stats.country = (SELECT country FROM users_stats WHERE id = %(userid)s LIMIT 1)"
+			query += " AND osu_user_stats{}.country_acronym = (SELECT country_acronym FROM osu_user_stats{} WHERE user_id = %(userid)s LIMIT 1)".format(gm, gm)
 		# Mods
 		if self.mods > -1:
-			query += " AND scores.mods = %(mods)s"
+			query += " AND osu_scores{}_high.enabled_mods = %(mods)s".format(gm)
 		# Friends
 		if self.friends:
-			query += " AND (scores.userid IN (" \
-					 "SELECT user2 FROM users_relationships " \
-					 "WHERE user1 = %(userid)s) " \
-					 "OR scores.userid = %(userid)s" \
-					 ")"
+			query += " AND (osu_scores{}_high.user_id IN (" \
+					 "SELECT zebra_id FROM phpbb_zebra " \
+					 "WHERE user_id = %(userid)s) " \
+					 "OR osu_scores{}_high.user_id = %(userid)s" \
+					 ")".format(gm, gm)
 		# Sort and limit at the end
 		query += " ORDER BY score DESC LIMIT 1"
 		result = glob.db.fetch(
 			query,
 			{
-				"md5": self.beatmap.fileMD5,
+				"bid": self.beatmap.beatmapId,
 				"userid": self.userID,
 				"mode": self.gameMode,
-				"mods": self.mods,
-				"isRelax": self.isRelax
+				"mods": self.mods
 			}
 		)
 		self.personalBestDone = True

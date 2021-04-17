@@ -11,7 +11,7 @@ from common.ripple import userUtils
 from common.ripple import scoreUtils
 from objects import glob
 
-
+# TODO: GIVE THEM GAMEMODE PARAM IN CONSTRUCTOR!!!!!
 class score:
 	__slots__ = ["scoreID", "playerName", "score", "maxCombo", "c50", "c100", "c300", "cMiss", "cKatu", "cGeki",
 	             "fullCombo", "mods", "playerUserID","rank","date", "hasReplay", "fileMd5", "passed", "playDateTime",
@@ -26,7 +26,7 @@ class score:
 		setData -- if True, set score data from db using scoreID. Optional.
 		"""
 		self.scoreID = 0
-		self.playerName = "nospe"
+		self.playerName = "me@acrylicstyle.xyz" # get some help pls
 		self.score = 0
 		self.maxCombo = 0
 		self.c50 = 0
@@ -145,7 +145,16 @@ class score:
 		rank -- rank in scoreboard. Optional.
 		"""
 		data = glob.db.fetch("SELECT osu_scores.*, phpbb_users.username FROM osu_scores LEFT JOIN phpbb_users ON phpbb_users.user_id = osu_scores.user_id WHERE osu_scores.score_id = %s LIMIT 1", [scoreID])
+		high_data = glob.db.fetch("SELECT * FROM osu_scores_high WHERE score_id = %s LIMIT 1", [scoreID])
+		if data is None:
+			data = high_data
+
 		if data is not None:
+			bm = glob.db.fetch("SELECT checksum FROM osu_beatmaps WHERE beatmap_id = %s LIMIT 1", [data["beatmap_id"]])
+			if high_data is not None:
+				data["pp"] = high_data["pp"]
+				data["high"] = 1
+			data["beatmap_md5"] = bm["checksum"]
 			self.setDataFromDict(data, rank)
 
 	def setDataFromDict(self, data, rank = None):
@@ -164,7 +173,7 @@ class score:
 		self.playerUserID = data["user_id"]
 		self.score = data["score"]
 		self.maxCombo = data["maxcombo"]
-		self.gameMode = data["play_mode"]
+		self.gameMode = 0 # TODO: FIX THIS PLEASE
 		self.c50 = data["count50"]
 		self.c100 = data["count100"]
 		self.c300 = data["count300"]
@@ -176,7 +185,7 @@ class score:
 		self.rank = rank if rank is not None else ""
 		self.date = data["date"]
 		self.fileMd5 = data["beatmap_md5"]
-		self.completed = 3 if data["pass"] == 1 else 0
+		self.completed = 3 if data["high"] == 1 else 0
 		#if "pp" in data:
 		self.pp = data["pp"]
 		self.calculateAccuracy()
@@ -259,7 +268,7 @@ class score:
 				else:
 					beatmapId = r["beatmap_id"]
 				duplicate = glob.db.fetch(
-					"SELECT score_id FROM osu_scores{} "
+					"SELECT score_id FROM osu_scores{}"
 					"WHERE user_id = %s AND beatmap_id = %s "
 					"AND score = %s AND enabled_mods = %s AND `date` >= %s "
 					"LIMIT 1".format(gameModes.getGameModeForDB(self.gameMode)),
@@ -277,9 +286,8 @@ class score:
 				# Get right "completed" value
 				log.debug("No duplicated")
 				personalBest = glob.db.fetch(
-					"SELECT score_id, score, pp FROM osu_scores{} "
+					"SELECT score_id, score, pp FROM osu_scores{}_high "
 					"WHERE user_id = %s AND beatmap_id = %s "
-					"AND pass = 1 "
 					"LIMIT 1".format(gameModes.getGameModeForDB(self.gameMode)),
 					(userID, beatmapId)
 				)
@@ -322,9 +330,26 @@ class score:
 			if bm is None:
 				# No beatmap information available, cannot continue
 				return
+			userID = userUtils.getID(self.playerName)
 			rank = generalUtils.getRank(_score=self)
-			query = "INSERT INTO osu_scores{}_high (scorechecksum, beatmap_id, beatmapset_id, user_id, score, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, perfect, enabled_mods, pass, date, pp) VALUES (0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gameModes.getGameModeForDB(self.gameMode))
-			self.scoreID = int(glob.db.execute(query, [bm["beatmap_id"], bm["beatmapset_id"], userUtils.getID(self.playerName), self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, int(self.passed), self.playDateTime, self.pp]))
+			country = glob.db.fetch("SELECT country_acronym FROM phpbb_users WHERE user_id = %s LIMIT 1", (userID,))
+			gm = gameModes.getGameModeForDB(self.gameMode)
+			if self.passed:
+				query = "INSERT INTO osu_scores{}_high (score_id, beatmap_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, `pp`, `country_acronym`) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gm)
+				self.scoreID = int(glob.db.execute(query, [bm["beatmap_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, self.playDateTime, self.pp, country]))
+				# set replay id
+				glob.db.execute("UPDATE osu_scores{}_high SET `replay` = %s WHERE score_id = %s LIMIT 1".format(gm), (self.scoreID, self.scoreID,))
+
+			query = "INSERT INTO osu_scores{} (scorechecksum, beatmap_id, beatmapset_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, high_score_id) VALUES (0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gm)
+			if self.scoreID is None or self.scoreID is 0:
+				sid = None
+			else:
+				sid = self.scoreID
+
+			sid = int(glob.db.execute(query, [bm["beatmap_id"], bm["beatmapset_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, self.playDateTime, sid]))
+
+			if self.scoreID is None or self.scoreID is 0:
+				self.scoreID = sid
 
 			# Set old personal best to completed = 2
 			# if self.oldPersonalBest != 0 and self.completed == 3:
