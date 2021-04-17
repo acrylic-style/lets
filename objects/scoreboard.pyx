@@ -173,7 +173,7 @@ class scoreboard:
 		# for c, topScore in enumerate(topScores):
 		for topScore in topScores:
 			# Create score object
-			s = score.score(topScore["id"], setData=False)
+			s = score.score(topScore["score_id"], setData=False)
 
 			# Set data and rank from topScores's row
 			s.setDataFromDict(topScore)
