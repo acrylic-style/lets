@@ -70,7 +70,7 @@ class beatmap:
 		)
 		if bdata is not None:
 			# This beatmap is already in db, remove old record
-			self.approved = bdata["approved"]
+			self.approved = convertRankedStatus(bdata["approved"])
 			log.debug("Deleting old beatmap data ({})".format(bdata["beatmap_id"]))
 			objects.glob.db.execute("DELETE FROM osu_beatmaps WHERE beatmap_id = %s LIMIT 1", [bdata["beatmap_id"]])
 
@@ -246,7 +246,7 @@ class beatmap:
 				data["version"],
 				data["total_length"],
 				data["hit_length"],
-				data["max_combo"],
+				0 if data["max_combo"] is None else data["max_combo"],
 				data["count_normal"],
 				data["count_slider"],
 				data["count_spinner"],
@@ -359,9 +359,21 @@ class beatmap:
 		self.approved = convertRankedStatus(int(mainData["approved"]))
 		self.beatmapId = int(mainData["beatmap_id"])
 		self.beatmapSetId = int(mainData["beatmapset_id"])
+		self.diff_size = float(mainData["diff_size"])
+		self.diff_drain = float(mainData["diff_drain"])
 		self.diff_approach = float(mainData["diff_approach"])
 		self.diff_overall = float(mainData["diff_overall"])
 		self.difficultyrating = float(mainData["difficultyrating"])
+		self.userId = int(mainData["creator_id"])
+		self.beatmapId = int(mainData["beatmap_id"])
+		self.beatmapSetId = int(mainData["beatmapset_id"])
+		self.version = mainData["version"]
+		self.total_length = int(mainData["total_length"])
+		self.countNormal = int(mainData["count_normal"])
+		self.countSlider = int(mainData["count_slider"])
+		self.countSpinner = int(mainData["count_spinner"])
+		self.playmode = int(mainData["mode"])
+		self.playcount = int(mainData["play_count"])
 
 		# Determine stars for every mode
 		self.starsStd = 0.0
