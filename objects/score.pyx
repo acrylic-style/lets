@@ -308,7 +308,7 @@ class score:
 				else:
 					# Compare personal best's score with current score
 					self.rankedScoreIncrease = self.score-personalBest["score"]
-					self.oldPersonalBest = personalBest["id"]
+					self.oldPersonalBest = personalBest["score_id"]
 					if overwritePolicy == scoreOverwrite.PP and \
 							personalBest["pp"] is not None and \
 							not math.isclose(self.pp, personalBest["pp"], abs_tol=0.01):
