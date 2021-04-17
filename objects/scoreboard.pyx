@@ -218,7 +218,7 @@ class scoreboard:
 		# Cache our personal best rank so we can eventually use it later as
 		# before personal best rank" in submit modular when building ranking panel
 		if self.personalBestRank >= 1:
-			glob.personalBestCache.set(self.userID, self.personalBestRank, self.beatmap.fileMD5, relax=self.isRelax)
+			glob.personalBestCache.set(self.userID, self.personalBestRank, self.beatmap.checksum, relax=self.isRelax)
 
 	def setPersonalBestRank(self):
 		gm = gameModes.getGameModeForDB(self.gameMode)

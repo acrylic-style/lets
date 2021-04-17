@@ -27,7 +27,7 @@ def shouldDownloadMap(mapFile, _beatmap):
         return True
     else:
         # File exists, check md5
-        if generalUtils.fileMd5(mapFile) != _beatmap.fileMD5 or not isBeatmap(mapFile):
+        if generalUtils.fileMd5(mapFile) != _beatmap.checksum or not isBeatmap(mapFile):
             # MD5 don't match, redownload .osu file
             return True
 
