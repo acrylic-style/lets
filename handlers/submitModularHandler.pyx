@@ -471,6 +471,7 @@ class handler(requestsManager.asyncRequestHandler):
 
 				# Get rank info (current rank, pp/score to next rank, user who is 1 rank above us)
 				rankInfo = leaderboardHelper.getRankInfo(userID, s.gameMode)
+				newRank = userUtils.getGameRank(userID, s.gameMode, relax=s.isRelax)
 
 				# Output dictionary
 				if newCharts:
@@ -489,7 +490,7 @@ class handler(requestsManager.asyncRequestHandler):
 							beatmapInfo.beatmapId,
 						),
 						OverallChart(
-							userID, oldUserStats, newUserStats, s, "", oldRank, rankInfo["currentRank"]
+							userID, oldUserStats, newUserStats, s, "", oldRank, newRank
 						)
 					]
 				else:
@@ -516,7 +517,7 @@ class handler(requestsManager.asyncRequestHandler):
 							("accuracyBefore", float(oldUserStats["accuracy"])/100),
 							("accuracyAfter", float(newUserStats["accuracy"])/100),
 							("rankBefore", oldRank),
-							("rankAfter", rankInfo["currentRank"]),
+							("rankAfter", newRank),
 							("toNextRank", rankInfo["difference"]),
 							("toNextRankUser", rankInfo["nextUsername"]),
 							("achievements", ""),
