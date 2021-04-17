@@ -523,4 +523,4 @@ def incrementPlaycount(md5, passed):
 		[md5]
 	)
 	res = objects.glob.db.fetch("SELECT beatmapset_id FROM osu_beatmaps WHERE checksum = %s LIMIT 1", [md5])
-	objects.glob.db.execute("UPDATE osu_beatmapsets SET playcount = playcount+1 WHERE beatmapset_id = %s LIMIT 1", [res["beatmapset_id"]])
+	objects.glob.db.execute("UPDATE osu_beatmapsets SET play_count = play_count+1 WHERE beatmapset_id = %s LIMIT 1", [res["beatmapset_id"]])
