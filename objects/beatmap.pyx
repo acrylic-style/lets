@@ -210,7 +210,7 @@ class beatmap:
 		"""
 		self.songName = data["title"]
 		self.checksum = data["checksum"]
-		self.approved = int(data["approved"])
+		self.approved = convertRankedStatus(int(data["approved"]))
 		self.beatmapId = int(data["beatmap_id"])
 		self.beatmapSetId = int(data["beatmapset_id"])
 		self.diff_approach = float(data["diff_approach"])
@@ -255,7 +255,7 @@ class beatmap:
 				data["diff_overall"],
 				data["diff_approach"],
 				data["mode"],
-				convertRankedStatus(int(data["approved"])),
+				int(data["approved"]),
 				data["last_update"],
 				data["difficultyrating"],
 				data["playcount"],
