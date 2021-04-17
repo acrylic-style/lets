@@ -223,7 +223,7 @@ class scoreboard:
 	def setPersonalBestRank(self):
 		gm = gameModes.getGameModeForDB(self.gameMode)
 		# Before running the HUGE query, make sure we have a score on that map
-		cdef str query = "SELECT id FROM osu_scores{}_high " \
+		cdef str query = "SELECT score_id FROM osu_scores{}_high " \
 						 "WHERE beatmap_id = %(bid)s " \
 						 "AND user_id = %(userid)s ".format(gm)
 		# Mods
