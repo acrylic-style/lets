@@ -373,7 +373,7 @@ class beatmap:
 		self.countSlider = int(mainData["count_slider"])
 		self.countSpinner = int(mainData["count_spinner"])
 		self.playmode = int(mainData["mode"])
-		self.playcount = int(mainData["play_count"])
+		self.playcount = int(mainData["playcount"])
 
 		# Determine stars for every mode
 		self.starsStd = 0.0
