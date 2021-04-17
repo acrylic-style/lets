@@ -341,7 +341,7 @@ class score:
 			gm = gameModes.getGameModeForDB(self.gameMode)
 			if self.passed:
 				query = "INSERT INTO osu_scores{}_high (score_id, beatmap_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, `pp`, `country_acronym`) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gm)
-				self.scoreID = int(glob.db.execute(query, [bm["beatmap_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, self.playDateTime, self.pp, country]))
+				self.scoreID = int(glob.db.execute(query, [bm["beatmap_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), self.pp, country]))
 				# set replay id
 				glob.db.execute("UPDATE osu_scores{}_high SET `replay` = %s WHERE score_id = %s LIMIT 1".format(gm), (self.scoreID, self.scoreID,))
 
@@ -351,7 +351,7 @@ class score:
 			else:
 				sid = self.scoreID
 
-			sid = int(glob.db.execute(query, [bm["beatmap_id"], bm["beatmapset_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, self.playDateTime, sid]))
+			sid = int(glob.db.execute(query, [bm["beatmap_id"], bm["beatmapset_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), sid]))
 
 			if self.scoreID is None or self.scoreID is 0:
 				self.scoreID = sid
