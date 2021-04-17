@@ -265,7 +265,7 @@ class scoreboard:
 			LIMIT 1
 		)
 		AND osu_scores{gm}_high.beatmap_id = %(bid)s
-		AND (phpbb_users.user_type = 0 OR phpbb_users.user_id = %(userid)s)"""
+		AND phpbb_users.user_id = %(userid)s"""
 		# Country
 		if self.country:
 			query += " AND osu_user_stats{}.country_acronym = (SELECT country_acronym FROM osu_user_stats{} WHERE user_id = %(userid)s LIMIT 1)".format(gm, gm)

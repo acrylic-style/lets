@@ -333,12 +333,15 @@ class score:
 		# Add this score
 		if self.completed >= 0:
 			bm = glob.db.fetch(
-				"SELECT osu_beatmapsets.title, osu_beatmaps.version, osu_beatmaps.beatmap_id, osu_beatmaps.beatmapset_id FROM osu_beatmaps LEFT JOIN osu_beatmapsets ON osu_beatmapsets.beatmapset_id = osu_beatmaps.beatmapset_id WHERE osu_beatmaps.checksum = %s LIMIT 1",
+				"SELECT osu_beatmaps.approved, osu_beatmapsets.title, osu_beatmaps.version, osu_beatmaps.beatmap_id, osu_beatmaps.beatmapset_id FROM osu_beatmaps LEFT JOIN osu_beatmapsets ON osu_beatmapsets.beatmapset_id = osu_beatmaps.beatmapset_id WHERE osu_beatmaps.checksum = %s LIMIT 1",
 				(self.fileMd5)
 			)
 			if bm is None:
 				# No beatmap information available, cannot continue
 				return
+			# don't give pp for unrankable statuses
+			if int(bm["approved"]) >= 3 or int(bm["approved"]) <= 0:
+				self.pp = 0
 			userID = userUtils.getID(self.playerName)
 			rank = generalUtils.getRank(score_=self)
 			countryRes = glob.db.fetch("SELECT country_acronym FROM phpbb_users WHERE user_id = %s LIMIT 1", (userID,))
@@ -358,7 +361,15 @@ class score:
 				bt = bm["title"]
 				bv = bm["version"]
 				gmf = gameModes.getGamemodeFull(gmm)
-				eventText = f"<img src='/images/{rank}_small.png'/> <b><a href='/u/{userID}'>{pn}</a></b> achieved rank # on <a href='/b/{bid}?m={gmm}'>{bt} [{bv}]</a> ({gmf})"
+				rankRes = glob.db.fetch(
+					f"SELECT COUNT(*) as `rank` FROM osu_scores{gm}_high WHERE beatmap_id = %s AND user_id = %s AND score >= (SELECT score from osu_scores{gm}_high WHERE beatmap_id = %s LIMIT 1)",
+					(bid, userID, bid,)
+				)
+				if rankRes is not None:
+					rankNumber = rankRes["rank"]
+				else:
+					rankNumber = 0
+				eventText = f"<img src='/images/{rank}_small.png'/> <b><a href='/u/{userID}'>{pn}</a></b> achieved rank #{rankNumber} on <a href='/b/{bid}?m={gmm}'>{bt} [{bv}]</a> ({gmf})"
 				glob.db.execute(
 					"INSERT INTO osu_events (`text`, `text_clean`, `beatmap_id`, `beatmapset_id`, `user_id`) VALUES (%s, %s, %s, %s, %s)",
 					(
