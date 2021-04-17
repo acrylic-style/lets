@@ -241,7 +241,7 @@ class beatmap:
 			"INSERT IGNORE INTO osu_beatmaps (`beatmap_id`, `beatmapset_id`, `user_id`, `filename`, `checksum`, `version`, `total_length`, `hit_length`, "
 			"`countTotal`, `countNormal`, `countSlider`, `countSpinner`, `diff_drain`, `diff_size`, `diff_overall`, `diff_approach`, `playmode`, "
 			"`approved`, `difficultyrating`, `playcount`, `passcount`, `bpm`"
-			") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+			") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
 			(
 				data["beatmap_id"],
 				data["beatmapset_id"],
