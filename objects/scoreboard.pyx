@@ -68,8 +68,8 @@ class scoreboard:
 					  "OR osu_scores{}_high.user_id = %(userid)s" \
 					  ")".format(mode, mode)
 
-		# was 'ORDER BY score DESC'. Shouldn't be needed, because osu_scores_high is already the max score/pp
-		order = ""
+		# was 'ORDER BY score DESC'. idk
+		order = "ORDER BY score DESC"
 		limit = "LIMIT 1"
 
 		# Build query, get params and run query
