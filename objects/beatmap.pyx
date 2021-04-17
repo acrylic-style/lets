@@ -191,7 +191,7 @@ class beatmap:
 
 		# Make sure the beatmap data in db is not too old
 		lastUpd = data["last_update"]
-		isStr = isInstance(lastUpd, str)
+		isStr = isinstance(lastUpd, str)
 		if int(expire) > 0 and time.time() > int(datetime.timestamp(datetime.strptime(lastUpd, "%Y-%m-%d %H:%M:%S") if isStr else lastUpd))+int(expire):
 			return False
 
