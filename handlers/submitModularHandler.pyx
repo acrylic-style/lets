@@ -478,7 +478,7 @@ class handler(requestsManager.asyncRequestHandler):
 					dicts = [
 						collections.OrderedDict([
 							("beatmapId", beatmapInfo.beatmapId),
-							("beatmapSetId", beatmapInfo.beatmapSetID),
+							("beatmapSetId", beatmapInfo.beatmapSetId),
 							("beatmapPlaycount", beatmapInfo.playcount + 1),
 							("beatmapPasscount", beatmapInfo.passcount + (s.completed == 3)),
 							("approvedDate", "")
@@ -497,7 +497,7 @@ class handler(requestsManager.asyncRequestHandler):
 					dicts = [
 						collections.OrderedDict([
 							("beatmapId", beatmapInfo.beatmapId),
-							("beatmapSetId", beatmapInfo.beatmapSetID),
+							("beatmapSetId", beatmapInfo.beatmapSetId),
 							("beatmapPlaycount", beatmapInfo.playcount),
 							("beatmapPasscount", beatmapInfo.passcount),
 							("approvedDate", "")
