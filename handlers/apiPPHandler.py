@@ -31,8 +31,8 @@ class handler(requestsManager.asyncRequestHandler):
 				raise exceptions.invalidArgumentsException(self.MODULE_NAME)
 
 			# Get beatmap ID and make sure it's a valid number
-			beatmapID = self.get_argument("b")
-			if not beatmapID.isdigit():
+			beatmapId = self.get_argument("b")
+			if not beatmapId.isdigit():
 				raise exceptions.invalidArgumentsException(self.MODULE_NAME)
 
 			# Get mods
@@ -64,11 +64,11 @@ class handler(requestsManager.asyncRequestHandler):
 				accuracy = None
 
 			# Print message
-			log.info("Requested pp for beatmap {}".format(beatmapID))
+			log.info("Requested pp for beatmap {}".format(beatmapId))
 
 			# Get beatmap md5 from osuapi
 			# TODO: Move this to beatmap object
-			osuapiData = osuapiHelper.osuApiRequest("get_beatmaps", "b={}".format(beatmapID))
+			osuapiData = osuapiHelper.osuApiRequest("get_beatmaps", "b={}".format(beatmapId))
 			if osuapiData is None or "file_md5" not in osuapiData or "beatmapset_id" not in osuapiData:
 				raise exceptions.invalidBeatmapException(self.MODULE_NAME)
 			beatmapMd5 = osuapiData["file_md5"]

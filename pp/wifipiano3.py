@@ -72,7 +72,7 @@ class WiFiPiano:
 			# Calculate pp
 			self.pp = self._runProcess()
 		except PianoError:
-			log.warning("Invalid beatmap {}".format(self.beatmap.beatmapID))
+			log.warning("Invalid beatmap {}".format(self.beatmap.beatmapId))
 			self.pp = 0
 		finally:
 			if self.pp == 0 and excC is not None:
@@ -81,4 +81,4 @@ class WiFiPiano:
 
 	@property
 	def mapPath(self):
-		return mapsHelper.cachedMapPath(self.beatmap.beatmapID)
+		return mapsHelper.cachedMapPath(self.beatmap.beatmapId)

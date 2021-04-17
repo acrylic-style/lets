@@ -43,7 +43,8 @@ class handler(requestsManager.asyncRequestHandler):
 
 			# Action (depends on 'action' parameter, not on HTTP method)
 			if action == "get":
-				self.write(self._getComments())
+				#self.write(self._getComments())
+				return None
 			elif action == "post":
 				# TODO: How do we get gamemode needed to fetch score?
 				# disabled for now
@@ -62,20 +63,20 @@ class handler(requestsManager.asyncRequestHandler):
 		output = ""
 
 		try:
-			beatmapID = int(self.get_argument("b", default=0))
+			beatmapId = int(self.get_argument("b", default=0))
 			beatmapSetID = int(self.get_argument("s", default=0))
 			scoreID = int(self.get_argument("r", default=0))
 		except ValueError:
 			raise exceptions.invalidArgumentsException(self.MODULE_NAME)
 
-		if beatmapID <= 0:
+		if beatmapId <= 0:
 			return
 
-		log.info("Requested comments for beatmap id {}".format(beatmapID))
+		log.info("Requested comments for beatmap id {}".format(beatmapId))
 
 		# Merge beatmap, beatmapset and score comments
 		for x in (
-				{"db_type": "beatmap_id", "client_type": "map", "value": beatmapID},
+				{"db_type": "beatmap_id", "client_type": "map", "value": beatmapId},
 				{"db_type": "beatmapset_id", "client_type": "song", "value": beatmapSetID},
 				{"db_type": "score_id", "client_type": "replay", "value": scoreID},
 		):
@@ -111,7 +112,7 @@ class handler(requestsManager.asyncRequestHandler):
 
 		# Get beatmap/set/score ids
 		try:
-			beatmapID = int(self.get_argument("b", default=0))
+			beatmapId = int(self.get_argument("b", default=0))
 			beatmapSetID = int(self.get_argument("s", default=0))
 			scoreID = int(self.get_argument("r", default=0))
 		except ValueError:
@@ -147,9 +148,9 @@ class handler(requestsManager.asyncRequestHandler):
 			column = "beatmapset_id"
 		elif target == "map":
 			# Beatmap comment
-			if beatmapID <= 0:
+			if beatmapId <= 0:
 				return
-			value = beatmapID
+			value = beatmapId
 			column = "beatmap_id"
 		elif target == "replay":
 			# Score comment

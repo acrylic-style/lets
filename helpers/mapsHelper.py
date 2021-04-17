@@ -40,10 +40,10 @@ def cacheMap(mapFile, _beatmap):
 
     # Download .osu file if needed
     if download:
-        log.debug("maps ~> Downloading {} osu file".format(_beatmap.beatmapID))
+        log.debug("maps ~> Downloading {} osu file".format(_beatmap.beatmapId))
 
         # Get .osu file from osu servers
-        fileContent = osuapiHelper.getOsuFileFromID(_beatmap.beatmapID)
+        fileContent = osuapiHelper.getOsuFileFromID(_beatmap.beatmapId)
 
         # Make sure osu servers returned something
         if fileContent is None or not isBeatmap(content=fileContent):

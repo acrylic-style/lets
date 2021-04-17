@@ -66,12 +66,12 @@ def getOsuFileFromName(fileName):
 		glob.dog.increment(glob.DATADOG_PREFIX+".osu_api.osu_file_requests")
 		return response
 
-def getOsuFileFromID(beatmapID):
+def getOsuFileFromID(beatmapId):
 	"""
 	Send a request to osu! servers to download a .osu file from beatmap ID
 	Used to get .osu files for oppai
 
-	beatmapID -- ID of beatmap (not beatmapset) to download
+	beatmapId -- ID of beatmap (not beatmapset) to download
 	return -- .osu file content if success, None if failed
 	"""
 	# Make sure osuapi is enabled
@@ -81,7 +81,7 @@ def getOsuFileFromID(beatmapID):
 
 	response = None
 	try:
-		URL = "{}/osu/{}".format(glob.conf["OSU_API_URL"], beatmapID)
+		URL = "{}/osu/{}".format(glob.conf["OSU_API_URL"], beatmapId)
 		response = requests.get(URL, timeout=20).content
 	finally:
 		glob.dog.increment(glob.DATADOG_PREFIX+".osu_api.osu_file_requests")

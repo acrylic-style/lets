@@ -17,7 +17,7 @@ class score:
 	__slots__ = ["scoreID", "playerName", "score", "maxCombo", "c50", "c100", "c300", "cMiss", "cKatu", "cGeki",
 	             "fullCombo", "mods", "playerUserID","rank","date", "hasReplay", "fileMd5", "passed", "playDateTime",
 	             "gameMode", "completed", "accuracy", "pp", "oldPersonalBest", "rankedScoreIncrease",
-				 "_playTime", "_fullPlayTime", "quit", "failed"]
+				 "_playTime", "_fullPlayTime", "quit", "failed", "beatmapId"]
 	def __init__(self, scoreID = None, rank = None, setData = True):
 		"""
 		Initialize a (empty) score object.
@@ -42,6 +42,7 @@ class score:
 		self.rank = rank	# can be empty string too
 		self.date = 0
 		self.hasReplay = 0
+		self.beatmapId = 1
 
 		self.fileMd5 = None
 		self.passed = False
@@ -185,7 +186,12 @@ class score:
 		self.mods = data["enabled_mods"]
 		self.rank = rank if rank is not None else ""
 		self.date = data["date"]
-		self.fileMd5 = data["beatmap_md5"]
+		self.fileMd5 = data["beatmap_md5"] if "beatmap_md5" in data else None
+		if self.fileMd5 is None:
+			res = glob.db.fetch("SELECT checksum FROM osu_beatmaps WHERE beatmap_id = %s LIMIT 1", (data["beatmap_id"],))
+			if res is not None:
+				self.fileMd5 = res["checksum"]
+		self.beatmapId = data["beatmap_id"] if "beatmap_id" in data else 1
 		self.completed = 3 if data["high"] == 1 else 0
 		#if "pp" in data:
 		self.pp = data["pp"]

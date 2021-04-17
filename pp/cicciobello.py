@@ -59,7 +59,7 @@ class Cicciobello:
     def _calculate_pp(self):
         try:
             # Cache beatmap
-            mapFile = mapsHelper.cachedMapPath(self.beatmap.beatmapID)
+            mapFile = mapsHelper.cachedMapPath(self.beatmap.beatmapId)
             mapsHelper.cacheMap(mapFile, self.beatmap)
 
             # TODO: Sanizite mods

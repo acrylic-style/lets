@@ -352,7 +352,7 @@ class handler(requestsManager.asyncRequestHandler):
 							"cono:analyze", json.dumps({
 								"score_id": s.scoreID,
 								"relax": s.isRelax,
-								"beatmap_id": beatmapInfo.beatmapID,
+								"beatmap_id": beatmapInfo.beatmapId,
 								"user_id": s.playerUserID,
 								"game_mode": s.gameMode,
 								"pp": s.pp,
@@ -418,7 +418,7 @@ class handler(requestsManager.asyncRequestHandler):
 			userUtils.updateStats(userID, s, relax=s.isRelax)
 
 			# Update personal beatmaps playcount
-			userUtils.incrementUserBeatmapPlaycount(userID, s.gameMode, beatmapInfo.beatmapID)
+			userUtils.incrementUserBeatmapPlaycount(userID, s.gameMode, beatmapInfo.beatmapId)
 
 			# Get "after" stats for ranking panel
 			# and to determine if we should update the leaderboard
@@ -477,7 +477,7 @@ class handler(requestsManager.asyncRequestHandler):
 					log.debug("Using new charts")
 					dicts = [
 						collections.OrderedDict([
-							("beatmapId", beatmapInfo.beatmapID),
+							("beatmapId", beatmapInfo.beatmapId),
 							("beatmapSetId", beatmapInfo.beatmapSetID),
 							("beatmapPlaycount", beatmapInfo.playcount + 1),
 							("beatmapPasscount", beatmapInfo.passcount + (s.completed == 3)),
@@ -486,7 +486,7 @@ class handler(requestsManager.asyncRequestHandler):
 						BeatmapChart(
 							oldPersonalBest if s.completed == 3 else currentPersonalBest,
 							currentPersonalBest if s.completed == 3 else s,
-							beatmapInfo.beatmapID,
+							beatmapInfo.beatmapId,
 						),
 						OverallChart(
 							userID, oldUserStats, newUserStats, s, "", oldRank, rankInfo["currentRank"]
@@ -496,7 +496,7 @@ class handler(requestsManager.asyncRequestHandler):
 					log.debug("Using old charts")
 					dicts = [
 						collections.OrderedDict([
-							("beatmapId", beatmapInfo.beatmapID),
+							("beatmapId", beatmapInfo.beatmapId),
 							("beatmapSetId", beatmapInfo.beatmapSetID),
 							("beatmapPlaycount", beatmapInfo.playcount),
 							("beatmapPasscount", beatmapInfo.passcount),
@@ -533,19 +533,18 @@ class handler(requestsManager.asyncRequestHandler):
 				# send message to #announce if we're rank #1
 				if newScoreboard.personalBestRank == 1 and s.completed == 3 and not restricted:
 					annmsg =\
-						"[https://ripple.moe/?u={} {}] " \
+						"[https://osu.acrylicstyle.xyz/users/{} {}] " \
 						"achieved rank #1 on " \
-						"[https://osu.ppy.sh/b/{} {}] ({}, {})".format(
+						"[https://osu.acrylicstyle.xyz/b/{} {}] ({})".format(
 						userID,
 						username.encode().decode("ASCII", "ignore"),
-						beatmapInfo.beatmapID,
+						beatmapInfo.beatmapId,
 						beatmapInfo.songName.encode().decode("ASCII", "ignore"),
-						gameModes.getGamemodeFull(s.gameMode),
-						"relax" if s.isRelax else "classic"
+						gameModes.getGamemodeFull(s.gameMode)
 					)
 					fokaM = None
 					try:
-						fokabot.message(annmsg, "#announce-relax" if s.isRelax else "#announce")
+						fokabot.message(annmsg, "#announce")
 					except requests.Timeout as e:
 						fokaM ="FokaBot #1 timeout."
 					except requests.ConnectionError as e:
@@ -553,7 +552,7 @@ class handler(requestsManager.asyncRequestHandler):
 					finally:
 						if fokaM is not None:
 							log.error(fokaM)
-							sentry.captureMessage(fokaM)
+							#sentry.captureMessage(fokaM)
 
 				# Write message to client
 				self.write(output)
