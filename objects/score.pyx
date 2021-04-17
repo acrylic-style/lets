@@ -146,7 +146,8 @@ class score:
 		scoreID -- score ID
 		rank -- rank in scoreboard. Optional.
 		"""
-		data = glob.db.fetch("SELECT osu_scores.*, phpbb_users.username FROM osu_scores LEFT JOIN phpbb_users ON phpbb_users.user_id = osu_scores.user_id WHERE osu_scores.score_id = %s LIMIT 1", [scoreID])
+		# TODO: gamemode
+		data = glob.db.fetch("SELECT osu_scores.*, phpbb_users.username FROM osu_scores LEFT JOIN phpbb_users ON phpbb_users.user_id = osu_scores.user_id WHERE osu_scores.high_score_id = %s LIMIT 1", [scoreID])
 		high_data = glob.db.fetch("SELECT * FROM osu_scores_high WHERE score_id = %s LIMIT 1", [scoreID])
 		if data is None:
 			data = high_data

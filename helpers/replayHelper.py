@@ -79,31 +79,32 @@ def buildFullReplay(scoreID=None, scoreData=None, rawReplay=None):
 		raise AttributeError("Either scoreID or scoreData must be provided, not neither or both")
 
 	mode = 0
+	# TODO: Implement better way to handle this
 	if scoreData is None:
 		scoreData = glob.db.fetch(
-			"SELECT osu_scores.*, phpbb_users.username FROM osu_scores LEFT JOIN phpbb_users ON osu_scores.user_id = phpbb_users.user_id "
-			"WHERE osu_scores.score_id = %s",
+			"SELECT osu_scores_high.*, phpbb_users.username FROM osu_scores_high LEFT JOIN phpbb_users ON osu_scores_high.user_id = phpbb_users.user_id "
+			"WHERE osu_scores_high.score_id = %s",
 			[scoreID]
 		)
 		if scoreData is None:
 			mode = 1
 			scoreData = glob.db.fetch(
-				"SELECT osu_scores_taiko.*, phpbb_users.username FROM osu_scores_taiko LEFT JOIN phpbb_users ON osu_scores_taiko.user_id = phpbb_users.user_id "
-				"WHERE osu_scores_taiko.score_id = %s",
+				"SELECT osu_scores_taiko_high.*, phpbb_users.username FROM osu_scores_taiko_high LEFT JOIN phpbb_users ON osu_scores_taiko_high.user_id = phpbb_users.user_id "
+				"WHERE osu_scores_taiko_high.score_id = %s",
 				[scoreID]
 			)
 			if scoreData is None:
 				mode = 2
 				scoreData = glob.db.fetch(
-					"SELECT osu_scores_fruits.*, phpbb_users.username FROM osu_scores_fruits LEFT JOIN phpbb_users ON osu_scores_fruits.user_id = phpbb_users.user_id "
-					"WHERE osu_scores_fruits.score_id = %s",
+					"SELECT osu_scores_fruits_high.*, phpbb_users.username FROM osu_scores_fruits_high LEFT JOIN phpbb_users ON osu_scores_fruits_high.user_id = phpbb_users.user_id "
+					"WHERE osu_scores_fruits_high.score_id = %s",
 					[scoreID]
 				)
 				if scoreData is None:
 					mode = 3
 					scoreData = glob.db.fetch(
-						"SELECT osu_scores_mania.*, phpbb_users.username FROM osu_scores_mania LEFT JOIN phpbb_users ON osu_scores_mani.user_id = phpbb_users.user_id "
-						"WHERE osu_scores_mania.score_id = %s",
+						"SELECT osu_scores_mania_high.*, phpbb_users.username FROM osu_scores_mania_high LEFT JOIN phpbb_users ON osu_scores_mania_high.user_id = phpbb_users.user_id "
+						"WHERE osu_scores_mania_high.score_id = %s",
 						[scoreID]
 					)
 	else:
