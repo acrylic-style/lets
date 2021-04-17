@@ -145,7 +145,7 @@ class handler(requestsManager.asyncRequestHandler):
 			beatmapInfo.setDataFromDB(s.fileMd5)
 
 			# Make sure the beatmap is submitted and updated
-			if beatmapInfo.rankedStatus in (
+			if beatmapInfo.approved in (
 				rankedStatuses.NOT_SUBMITTED, rankedStatuses.NEED_UPDATE, rankedStatuses.UNKNOWN
 			):
 				log.debug("Beatmap is not submitted/outdated/unknown. Score submission aborted.")
