@@ -273,7 +273,7 @@ class score:
 					"AND score = %s AND enabled_mods = %s AND `date` >= %s "
 					"LIMIT 1".format(gameModes.getGameModeForDB(self.gameMode)),
 					(
-						userID, beatmapId, self.score, self.mods, int(time.time()) - 120,
+						userID, beatmapId, self.score, self.mods, datetime.fromtimestamp(int(time.time()) - 120).strftime('%Y-%m-%d %H:%M:%S'),
 					)
 				)
 				if duplicate is not None:
@@ -332,7 +332,11 @@ class score:
 				return
 			userID = userUtils.getID(self.playerName)
 			rank = generalUtils.getRank(score_=self)
-			country = glob.db.fetch("SELECT country_acronym FROM phpbb_users WHERE user_id = %s LIMIT 1", (userID,))
+			countryRes = glob.db.fetch("SELECT country_acronym FROM phpbb_users WHERE user_id = %s LIMIT 1", (userID,))
+			if countryRes is None:
+				country = "XX"
+			else:
+				country = countryRes["country_acronym"]
 			gm = gameModes.getGameModeForDB(self.gameMode)
 			if self.passed:
 				query = "INSERT INTO osu_scores{}_high (score_id, beatmap_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, `pp`, `country_acronym`) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gm)
