@@ -97,7 +97,7 @@ class Ez:
 		ez = None
 		try:
 			# Build .osu map file path
-			mapFile = mapsHelper.cachedMapPath(self.beatmap.beatmapID)
+			mapFile = mapsHelper.cachedMapPath(self.beatmap.beatmapId)
 			mapsHelper.cacheMap(mapFile, self.beatmap)
 
 			# Use only mods supported by oppai
