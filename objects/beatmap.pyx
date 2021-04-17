@@ -49,6 +49,7 @@ class beatmap:
 		self.youtube_preview = ""
 		self.score_version = 0
 		self.bpm = 0
+		self.rating = 0
 
 		self.songName = ""
 
