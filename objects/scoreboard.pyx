@@ -1,7 +1,7 @@
 from objects import score
 from common.ripple import userUtils
 from constants import rankedStatuses, displayModes
-from common.constants import mods as modsEnum
+from common.constants import mods as modsEnum, gameModes
 from objects import glob
 
 
