@@ -186,11 +186,11 @@ class beatmap:
 		expire = objects.glob.conf["BEATMAP_CACHE_EXPIRE"]
 
 		# If the beatmap is ranked, we don't need to refresh data from osu!api that often
-		if data["approved"] >= rankedStatuses.RANKED:
+		if convertRankedStatus(data["approved"]) >= rankedStatuses.RANKED:
 			expire *= 3
 
 		# Make sure the beatmap data in db is not too old
-		if int(expire) > 0 and time.time() > int(datetime.timestamp(data["last_update"]))+int(expire):
+		if int(expire) > 0 and time.time() > int(datetime.timestamp(datetime.strptime(data["last_update"], "%Y-%m-%d %H:%M:%S")))+int(expire):
 			return False
 
 		# Data in DB, set beatmap data
@@ -240,7 +240,7 @@ class beatmap:
 		objects.glob.db.execute(
 			"INSERT IGNORE INTO osu_beatmaps (`beatmap_id`, `beatmapset_id`, `user_id`, `filename`, `checksum`, `version`, `total_length`, `hit_length`, "
 			"`countTotal`, `countNormal`, `countSlider`, `countSpinner`, `diff_drain`, `diff_size`, `diff_overall`, `diff_approach`, `playmode`, "
-			"`approved`, `last_update`, `difficultyrating`, `playcount`, `passcount`, `bpm`"
+			"`approved`, `difficultyrating`, `playcount`, `passcount`, `bpm`"
 			") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
 			(
 				data["beatmap_id"],
@@ -261,7 +261,6 @@ class beatmap:
 				data["diff_approach"],
 				data["mode"],
 				int(data["approved"]),
-				data["last_update"],
 				data["difficultyrating"],
 				data["playcount"],
 				data["passcount"],
@@ -271,8 +270,8 @@ class beatmap:
 		objects.glob.db.execute(
 			"INSERT IGNORE INTO osu_beatmapsets (`beatmapset_id`, `user_id`, `artist`, `artist_unicode`, `title`, `title_unicode`, `creator`, `source`, "
 			"`tags`, `video`, `storyboard`, `bpm`, `approved`, `approved_date`, `submit_date`, `filename`, `download_disabled`, "
-			"`rating`, `favourite_count`, `genre_id`, `language_id`"
-			") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '', %s, %s, %s, %s, %s)",
+			"`rating`, `favourite_count`, `genre_id`, `language_id`, `discussion_enabled`"
+			") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '', %s, %s, %s, %s, %s, 1)",
 			(
 				data["beatmapset_id"],
 				data["creator_id"],
@@ -360,7 +359,7 @@ class beatmap:
 		self.saveDataFromApi(self.filename, dataCtb)
 		self.saveDataFromApi(self.filename, dataMania)
 		self.checksum = md5
-		self.last_update = mainData["last_update"]
+		self.last_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 		self.ranked = int(mainData["approved"])
 		self.approved = convertRankedStatus(int(mainData["approved"]))
 		self.beatmapId = int(mainData["beatmap_id"])
