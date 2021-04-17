@@ -445,8 +445,8 @@ class beatmap:
 		rankedStatusOutput = self.approved
 
 		# Force approved for A/Q/L beatmaps that give PP, so we don't get the alert in game
-		if self.approved >= rankedStatuses.APPROVED and self.is_rankable:
-			rankedStatusOutput = rankedStatuses.APPROVED
+		#if self.approved >= rankedStatuses.APPROVED and self.is_rankable:
+		#	rankedStatusOutput = rankedStatuses.APPROVED
 
 		# Fix loved maps for old clients
 		if version < 4 and self.approved == rankedStatuses.LOVED:
