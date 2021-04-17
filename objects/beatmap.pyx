@@ -516,8 +516,10 @@ def incrementPlaycount(md5, passed):
 	passed -- if True, increment passcount too
 	"""
 	objects.glob.db.execute(
-		f"UPDATE beatmaps "
+		f"UPDATE osu_beatmaps "
 		f"SET playcount = playcount+1{', passcount = passcount+1' if passed else ''} "
-		f"WHERE beatmap_md5 = %s LIMIT 1",
+		f"WHERE checksum = %s LIMIT 1",
 		[md5]
 	)
+	res = objects.glob.db.fetch("SELECT beatmapset_id FROM osu_beatmaps WHERE checksum = %s LIMIT 1", [md5])
+	objects.glob.db.execute("UPDATE osu_beatmapsets SET playcount = playcount+1 WHERE beatmapset_id = %s LIMIT 1", [res["beatmapset_id"]])
