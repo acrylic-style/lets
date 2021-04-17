@@ -381,6 +381,12 @@ class score:
 						userID,
 					)
 				)
+				if rankNumber == 1:
+					glob.db.execute("DELETE FROM osu_leaders{} WHERE beatmap_id = %s".format(gm), bid)
+					glob.db.execute(
+						"INSERT INTO osu_leaders{} (`beatmap_id`, `user_id`, `score_id`) VALUES (%s, %s, %s)".format(gm),
+						(bid, userID, self.scoreID,)
+					)
 
 			query = "INSERT INTO osu_scores{} (scorechecksum, beatmap_id, beatmapset_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, high_score_id) VALUES (0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gm)
 			if self.scoreID is None or self.scoreID is 0:
