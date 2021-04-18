@@ -362,6 +362,7 @@ class score:
 					)
 			gm = gameModes.getGameModeForDB(self.gameMode)
 			if self.passed:
+				glob.db.execute("UPDATE osu_beatmaps SET passcount = passcount + 1 WHERE beatmap_id = %s LIMIT 1", (bm["beatmap_id"],))
 				query = "INSERT INTO osu_scores{}_high (score_id, beatmap_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, `pp`, `country_acronym`) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gm)
 				self.scoreID = int(glob.db.execute(query, [bm["beatmap_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), self.pp, country]))
 				# set replay id
