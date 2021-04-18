@@ -448,7 +448,7 @@ class score:
 			if scoreUtils.isRankable(self.mods):
 				self.pp = calculator.pp # 100% of the original pp
 			else:
-				self.pp = calculator.pp * 0.1 # 10% of the original pp
+				self.pp = calculator.pp * 0.5 # 50% of the relax pp
 		else:
 			self.pp = 0
 
