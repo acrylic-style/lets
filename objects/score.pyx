@@ -355,10 +355,11 @@ class score:
 				country = countryRes["country_acronym"]
 				countryUserCountRes = glob.db.fetch("SELECT COUNT(*) AS `userCount` FROM phpbb_users WHERE country_acronym = %s", (country,))
 				# yes, rankedscore doesn't match with osu!.
-				glob.db.execute(
-					"UPDATE osu_countries SET playcount = playcount + 1, usercount = %s, pp = pp + %s, rankedscore = rankedscore + %s WHERE acronym = %s",
-					(countryUserCountRes, self.pp, self.score, country,)
-				)
+				if countryUserCountRes is not None:
+					glob.db.execute(
+						"UPDATE osu_countries SET playcount = playcount + 1, usercount = %s, pp = pp + %s, rankedscore = rankedscore + %s WHERE acronym = %s",
+						(countryUserCountRes["userCount"], self.pp, self.score, country,)
+					)
 			gm = gameModes.getGameModeForDB(self.gameMode)
 			if self.passed:
 				query = "INSERT INTO osu_scores{}_high (score_id, beatmap_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, `pp`, `country_acronym`) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gm)
