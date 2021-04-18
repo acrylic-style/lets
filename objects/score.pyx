@@ -337,8 +337,11 @@ class score:
 				"SELECT osu_beatmaps.approved, osu_beatmapsets.title, osu_beatmaps.version, osu_beatmaps.beatmap_id, osu_beatmaps.beatmapset_id FROM osu_beatmaps LEFT JOIN osu_beatmapsets ON osu_beatmapsets.beatmapset_id = osu_beatmaps.beatmapset_id WHERE osu_beatmaps.checksum = %s LIMIT 1",
 				(self.fileMd5)
 			)
-			if bm is None:
-				# No beatmap information available, cannot continue
+			if bm is None or self.mods & 536870912 != 0 or self.mods & 2048 != 0:
+				# - No beatmap information available
+				# - or is score v2
+				# - or is auto play (should not be able to submit though)
+				# but submit relax/auto pilot because they're cool
 				return
 			# don't give pp for unrankable statuses
 			if int(bm["approved"]) >= 3 or int(bm["approved"]) <= 0:
