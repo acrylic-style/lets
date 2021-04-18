@@ -473,6 +473,8 @@ class handler(requestsManager.asyncRequestHandler):
 				rankInfo = leaderboardHelper.getRankInfo(userID, s.gameMode)
 				newRank = userUtils.getGameRank(userID, s.gameMode, relax=s.isRelax)
 
+				oldUserStats["accuracy"] = oldUserStats["accuracy"] * 100
+				newUserStats["accuracy"] = newUserStats["accuracy"] * 100
 				# Output dictionary
 				if newCharts:
 					log.debug("Using new charts")
@@ -514,8 +516,8 @@ class handler(requestsManager.asyncRequestHandler):
 							("totalScoreBefore", oldUserStats["totalScore"]),
 							("totalScoreAfter", newUserStats["totalScore"]),
 							("playCountBefore", newUserStats["playcount"]),
-							("accuracyBefore", float(oldUserStats["accuracy"])/100),
-							("accuracyAfter", float(newUserStats["accuracy"])/100),
+							("accuracyBefore", float(oldUserStats["accuracy"])),
+							("accuracyAfter", float(newUserStats["accuracy"])),
 							("rankBefore", oldRank),
 							("rankAfter", newRank),
 							("toNextRank", rankInfo["difference"]),
