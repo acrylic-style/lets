@@ -362,6 +362,7 @@ class score:
 					)
 			gm = gameModes.getGameModeForDB(self.gameMode)
 			if self.passed:
+				dupe = glob.db.fetch("SELECT `rank` FROM osu_scores{}_high WHERE beatmap_id = %s, user_id = %s".format(gm), (bm["beatmap_id"], userID,))
 				glob.db.execute("UPDATE osu_beatmaps SET passcount = passcount + 1 WHERE beatmap_id = %s LIMIT 1", (bm["beatmap_id"],))
 				query = "INSERT INTO osu_scores{}_high (score_id, beatmap_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, `pp`, `country_acronym`) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gm)
 				self.scoreID = int(glob.db.execute(query, [bm["beatmap_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), self.pp, country]))
@@ -394,16 +395,12 @@ class score:
 						userID,
 					)
 				)
-				if rank == "XH":
-					glob.db.execute("UPDATE osu_user_stats{} SET xh_rank_count = xh_rank_count + 1 WHERE user_id = %s LIMIT 1".format(gm), (userID,))
-				if rank == "X":
-					glob.db.execute("UPDATE osu_user_stats{} SET x_rank_count = x_rank_count + 1 WHERE user_id = %s LIMIT 1".format(gm), (userID,))
-				if rank == "SH":
-					glob.db.execute("UPDATE osu_user_stats{} SET sh_rank_count = sh_rank_count + 1 WHERE user_id = %s LIMIT 1".format(gm), (userID,))
-				if rank == "S":
-					glob.db.execute("UPDATE osu_user_stats{} SET s_rank_count = s_rank_count + 1 WHERE user_id = %s LIMIT 1".format(gm), (userID,))
-				if rank == "A":
-					glob.db.execute("UPDATE osu_user_stats{} SET a_rank_count = a_rank_count + 1 WHERE user_id = %s LIMIT 1".format(gm), (userID,))
+				if rank == "XH" or rank == "X" or rank == "SH" or rank == "S" or rank == "A":
+					glob.db.execute("UPDATE osu_user_stats{} SET {}_rank_count = {}_rank_count + 1 WHERE user_id = %s LIMIT 1".format(gm, rank.lower(), rank.lower()), (userID,))
+				if dupe is not None:
+					rank = dupe["rank"]
+					if rank == "XH" or rank == "X" or rank == "SH" or rank == "S" or rank == "A":
+						glob.db.execute("UPDATE osu_user_stats{} SET {}_rank_count = {}_rank_count - 1 WHERE user_id = %s LIMIT 1".format(gm, rank.lower(), rank.lower()), (userID,))
 				if rankNumber == 1:
 					glob.db.execute("DELETE FROM osu_leaders{} WHERE beatmap_id = %s".format(gm), bid)
 					glob.db.execute(
