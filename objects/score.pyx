@@ -407,6 +407,12 @@ class score:
 						"INSERT INTO osu_leaders{} (`beatmap_id`, `user_id`, `score_id`) VALUES (%s, %s, %s)".format(gm),
 						(bid, userID, self.scoreID,)
 					)
+				# Update accuracy
+				glob.db.execute(
+					"UPDATE osu_user_stats{} SET accuracy_total = accuracy_total + %s, accuracy_count = accuracy_count + 1 WHERE user_id = %s LIMIT 1".format(gm),
+					(self.accuracy * 10000, userID,)
+				)
+				userUtils.updateAccuracy(userID, self.gameMode)
 
 			query = "INSERT INTO osu_scores{} (scorechecksum, beatmap_id, beatmapset_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, high_score_id) VALUES (0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gm)
 			if self.scoreID is None or self.scoreID is 0:
@@ -415,10 +421,6 @@ class score:
 				sid = self.scoreID
 
 			sid = int(glob.db.execute(query, [bm["beatmap_id"], bm["beatmapset_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), sid]))
-			glob.db.execute(
-				"UPDATE osu_user_stats{} SET accuracy_total = accuracy_total + %s, accuracy_count = accuracy_count + 1 WHERE user_id = %s LIMIT 1".format(gm),
-				(self.accuracy * 10000, userID,)
-			)
 
 			if self.scoreID is None or self.scoreID is 0:
 				self.scoreID = sid
