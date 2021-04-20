@@ -384,6 +384,10 @@ class score:
 					rankNumber = rankRes["rank"]
 				else:
 					rankNumber = 0
+				if gmf == "Taiko":
+					gmf = "osu!taiko"
+				if gmf == "Catch The Beat":
+					gmf = "osu!catch"
 				eventText = f"<img src='/images/{rank}_small.png'/> <b><a href='/u/{userID}'>{pn}</a></b> achieved rank #{rankNumber} on <a href='/b/{bid}?m={gmm}'>{bt} [{bv}]</a> ({gmf})"
 				glob.db.execute(
 					"INSERT INTO osu_events (`text`, `text_clean`, `beatmap_id`, `beatmapset_id`, `user_id`) VALUES (%s, %s, %s, %s, %s)",
