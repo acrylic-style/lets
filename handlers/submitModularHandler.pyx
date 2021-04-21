@@ -142,7 +142,13 @@ class handler(requestsManager.asyncRequestHandler):
 
 			# Get beatmap info
 			beatmapInfo = beatmap.beatmap()
-			beatmapInfo.setDataFromDB(s.fileMd5)
+			if not beatmapInfo.setDataFromDB(s.fileMd5):
+				log.debug("Beatmap not found or requires update. Score submission aborted.")
+				bancho.notification(
+					userID,
+					"Unable to submit score because the beatmap is not cached on our server. Please open the global ranking at least once before playing."
+				)
+				return
 
 			# Make sure the beatmap is submitted and updated
 			if beatmapInfo.approved in (
