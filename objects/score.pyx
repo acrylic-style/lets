@@ -188,7 +188,7 @@ class score:
 		self.fullCombo = data["perfect"] == 1
 		self.mods = data["enabled_mods"]
 		self.rank = rank if rank is not None else ""
-		self.date = int(datetime.timestamp(datetime.strptime(data["date"], "%Y-%m-%d %H:%M:%S")))
+		self.date = int(datetime.timestamp(datetime.strptime(data["date"], "%Y-%m-%d %H:%M:%S") if isinstance(data["date"], str) else data["date"]))
 		self.fileMd5 = data["beatmap_md5"] if "beatmap_md5" in data else None
 		if self.fileMd5 is None:
 			res = glob.db.fetch("SELECT checksum FROM osu_beatmaps WHERE beatmap_id = %s LIMIT 1", (data["beatmap_id"],))
