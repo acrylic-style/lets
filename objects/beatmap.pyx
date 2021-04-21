@@ -240,10 +240,10 @@ class beatmap:
 		if data is None:
 			return None
 		objects.glob.db.execute(
-			"INSERT IGNORE INTO osu_beatmaps (`beatmap_id`, `beatmapset_id`, `user_id`, `filename`, `checksum`, `version`, `total_length`, `hit_length`, "
+			"INSERT INTO osu_beatmaps (`beatmap_id`, `beatmapset_id`, `user_id`, `filename`, `checksum`, `version`, `total_length`, `hit_length`, "
 			"`countTotal`, `countNormal`, `countSlider`, `countSpinner`, `diff_drain`, `diff_size`, `diff_overall`, `diff_approach`, `playmode`, "
 			"`approved`, `difficultyrating`, `playcount`, `passcount`, `bpm`"
-			") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+			") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE last_update = now()",
 			(
 				data["beatmap_id"],
 				data["beatmapset_id"],
@@ -270,10 +270,10 @@ class beatmap:
 			)
 		)
 		objects.glob.db.execute(
-			"INSERT IGNORE INTO osu_beatmapsets (`beatmapset_id`, `user_id`, `artist`, `artist_unicode`, `title`, `title_unicode`, `creator`, `source`, "
+			"INSERT INTO osu_beatmapsets (`beatmapset_id`, `user_id`, `artist`, `artist_unicode`, `title`, `title_unicode`, `creator`, `source`, "
 			"`tags`, `video`, `storyboard`, `bpm`, `approved`, `approved_date`, `submit_date`, `filename`, `download_disabled`, "
 			"`rating`, `favourite_count`, `genre_id`, `language_id`, `discussion_enabled`"
-			") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '', %s, %s, %s, %s, %s, 1)",
+			") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '', %s, %s, %s, %s, %s, 1) ON DUPLICATE KEY UPDATE last_update = now()",
 			(
 				data["beatmapset_id"],
 				data["creator_id"],
