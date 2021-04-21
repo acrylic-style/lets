@@ -199,6 +199,7 @@ class score:
 		#if "pp" in data:
 		self.pp = data["pp"]
 		self.calculateAccuracy()
+		self.playDateTime = data["date"] if "date" in data else int(time.time())
 
 	def setDataFromScoreData(self, scoreData, quit_=None, failed=None):
 		"""
