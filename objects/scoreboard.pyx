@@ -3,6 +3,7 @@ from common.ripple import userUtils
 from constants import rankedStatuses, displayModes
 from common.constants import mods as modsEnum, gameModes
 from objects import glob
+from common.log import logUtils as log
 
 
 class scoreboard:
@@ -261,7 +262,8 @@ class scoreboard:
 		WHERE osu_scores{gm}_high.score >= (
 			SELECT score FROM osu_scores{gm}_high
 			WHERE beatmap_id = %(bid)s
-			AND user_id = %(userid)s
+			AND user_id = %(userid)s 
+			ORDER BY score DESC
 			LIMIT 1
 		)
 		AND osu_scores{gm}_high.beatmap_id = %(bid)s
@@ -292,6 +294,7 @@ class scoreboard:
 		)
 		self.personalBestDone = True
 		if result is not None:
+			log.debug("Rank: {}".format(result["rank"]))
 			self.personalBestRank = result["rank"]
 
 	def getScoresData(self):
