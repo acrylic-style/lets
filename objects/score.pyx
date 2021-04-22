@@ -436,16 +436,16 @@ class score:
 				userUtils.updateAccuracy(userID, self.gameMode)
 
 			scoreIds = glob.db.fetch("SELECT osu_scores.score_id AS s0, osu_scores_taiko.score_id AS s1, osu_scores_fruits.score_id AS s2, osu_scores_mania.score_id AS s3 FROM osu_scores, osu_scores_taiko, osu_scores_fruits, osu_scores_mania ORDER BY osu_scores.score_id DESC, osu_scores_taiko.score_id DESC, osu_scores_fruits.score_id DESC, osu_scores_mania.score_id DESC LIMIT 1;")
-				if scoreIds is not None:
-					nextId = max(
-						scoreIds["s0"] if scoreIds["s0"] is not None else 0,
-						scoreIds["s1"] if scoreIds["s1"] is not None else 0,
-						scoreIds["s2"] if scoreIds["s2"] is not None else 0,
-						scoreIds["s3"] if scoreIds["s3"] is not None else 0,
-						0
-					) + 1
-				else:
-					nextId = 1
+			if scoreIds is not None:
+				nextId = max(
+					scoreIds["s0"] if scoreIds["s0"] is not None else 0,
+					scoreIds["s1"] if scoreIds["s1"] is not None else 0,
+					scoreIds["s2"] if scoreIds["s2"] is not None else 0,
+					scoreIds["s3"] if scoreIds["s3"] is not None else 0,
+					0
+				) + 1
+			else:
+				nextId = 1
 			query = "INSERT INTO osu_scores{} (score_id, scorechecksum, beatmap_id, beatmapset_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, high_score_id) VALUES (%s, 0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gm)
 			if self.scoreID is None or self.scoreID is 0:
 				sid = None
