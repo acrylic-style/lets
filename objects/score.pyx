@@ -146,13 +146,13 @@ class score:
 		scoreID -- score ID
 		rank -- rank in scoreboard. Optional.
 		"""
-		# TODO: gamemode
+		mode = gameModes.getGameModeForDB(self.gameMode)
 		data = glob.db.fetch(
-			"SELECT osu_scores{}.*, phpbb_users.username FROM osu_scores{} LEFT JOIN phpbb_users ON phpbb_users.user_id = osu_scores{}.user_id WHERE osu_scores{}.high_score_id = %s LIMIT 1".format(self.gameMode, self.gameMode, self.gameMode, self.gameMode),
+			"SELECT osu_scores{}.*, phpbb_users.username FROM osu_scores{} LEFT JOIN phpbb_users ON phpbb_users.user_id = osu_scores{}.user_id WHERE osu_scores{}.high_score_id = %s LIMIT 1".format(mode, mode, mode, mode),
 			[scoreID]
 		)
 		high_data = glob.db.fetch(
-			"SELECT * FROM osu_scores{}_high WHERE score_id = %s LIMIT 1".format(self.gameMode),
+			"SELECT * FROM osu_scores{}_high WHERE score_id = %s LIMIT 1".format(mode),
 			[scoreID]
 		)
 		if data is None:
