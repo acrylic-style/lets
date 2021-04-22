@@ -357,7 +357,7 @@ class handler(requestsManager.asyncRequestHandler):
 
 					try:
 						saveLocally(glob.conf["REPLAYS_FOLDER"])
-						saveLocally(glob.conf["OSU_WEB_REPLAYS_FOLDER"], true)
+						saveLocally(glob.conf["OSU_WEB_REPLAYS_FOLDER"], True)
 					except Exception as e:
 						log.error("Error while saving replay to local ({})".format(e))
 					if glob.conf.s3_enabled:
