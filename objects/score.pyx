@@ -11,6 +11,7 @@ from common.ripple import userUtils
 from common.ripple import scoreUtils
 from objects import glob
 from datetime import datetime
+from pymysql.err import IntegrityError
 
 class score:
 	__slots__ = ["scoreID", "playerName", "score", "maxCombo", "c50", "c100", "c300", "cMiss", "cKatu", "cGeki",
@@ -452,7 +453,25 @@ class score:
 			else:
 				sid = self.scoreID
 
-			sid = int(glob.db.execute(query, [nextId, bm["beatmap_id"], bm["beatmapset_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), sid]))
+			try:
+				sid = int(glob.db.execute(query, [nextId, bm["beatmap_id"], bm["beatmapset_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), sid]))
+			except IntegrityError:
+				# there's dupe. let's retry.
+				scoreIds = glob.db.fetch("SELECT osu_scores.score_id AS s0, osu_scores_taiko.score_id AS s1, osu_scores_fruits.score_id AS s2, osu_scores_mania.score_id AS s3 FROM osu_scores, osu_scores_taiko, osu_scores_fruits, osu_scores_mania ORDER BY osu_scores.score_id DESC, osu_scores_taiko.score_id DESC, osu_scores_fruits.score_id DESC, osu_scores_mania.score_id DESC LIMIT 1;")
+				if scoreIds is not None:
+					nextId = max(
+						scoreIds["s0"] if scoreIds["s0"] is not None else 0,
+						scoreIds["s1"] if scoreIds["s1"] is not None else 0,
+						scoreIds["s2"] if scoreIds["s2"] is not None else 0,
+						scoreIds["s3"] if scoreIds["s3"] is not None else 0,
+						0
+					) + 1
+				else:
+					nextId = 1
+				try:
+					sid = int(glob.db.execute(query, [nextId, bm["beatmap_id"], bm["beatmapset_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), sid]))
+				except:
+					log.error("Failed to submit score for {}".format(userID))
 
 			if self.scoreID is None or self.scoreID is 0:
 				self.scoreID = sid
