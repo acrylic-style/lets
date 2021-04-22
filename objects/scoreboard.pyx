@@ -81,7 +81,7 @@ class scoreboard:
 			"mods": self.mods
 		})
 		if id_ is None:
-			return 1
+			return None
 		return id_["score_id"]
 
 	def setScores(self):
