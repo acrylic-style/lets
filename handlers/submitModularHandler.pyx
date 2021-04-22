@@ -334,7 +334,7 @@ class handler(requestsManager.asyncRequestHandler):
 								m = "fruits"
 							if s.gameMode == 3:
 								m = "mania"
-							with open(os.path.join("{}/{}".format(folder, m), f"replay-{m}_{s.beatmapId}_{s.scoreID}.osr"), "wb") as f:
+							with open(os.path.join("{}/{}".format(folder, m), f"replay-{m}_{beatmapInfo.beatmapId}_{s.scoreID}.osr"), "wb") as f:
 								f.write(replay)
 						else:
 							with open(os.path.join(folder, replayFileName), "wb") as f:
