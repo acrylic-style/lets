@@ -64,6 +64,7 @@ class Config:
 			"S3_SCREENSHOTS_BUCKET": config("S3_SCREENSHOTS_BUCKET", default=""),
 
 			"FAILED_REPLAYS_FOLDER": config("FAILED_REPLAYS_FOLDER", default=".data/failed_replays")
+			"OSU_WEB_REPLAYS_FOLDER": config("OSU_WEB_REPLAYS_FOLDER", default=None)
 		}
 
 	@property
