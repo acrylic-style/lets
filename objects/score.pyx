@@ -42,7 +42,7 @@ class score:
 		self.rank = rank	# can be empty string too
 		self.date = 0
 		self.hasReplay = 0
-		self.beatmapId = 1
+		self.beatmapId = 0
 
 		self.fileMd5 = None
 		self.passed = False
@@ -201,7 +201,7 @@ class score:
 			res = glob.db.fetch("SELECT checksum FROM osu_beatmaps WHERE beatmap_id = %s LIMIT 1", (data["beatmap_id"],))
 			if res is not None:
 				self.fileMd5 = res["checksum"]
-		self.beatmapId = data["beatmap_id"] if "beatmap_id" in data else 1
+		self.beatmapId = data["beatmap_id"] if "beatmap_id" in data else 0
 		self.completed = 3 if data["high"] == 1 else 0
 		#if "pp" in data:
 		self.pp = data["pp"]

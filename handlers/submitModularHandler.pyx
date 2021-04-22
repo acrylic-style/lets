@@ -323,10 +323,22 @@ class handler(requestsManager.asyncRequestHandler):
 						)
 						log.debug("{} has been uploaded to S3".format(replayFileName))
 
-					def saveLocally(folder):
+					def saveLocally(folder, osu_web = False):
 						log.debug("Saving {} locally in {}".format(replayFileName, folder))
-						with open(os.path.join(folder, replayFileName), "wb") as f:
-							f.write(replay)
+						if osu_web:
+							if self.gameMode == 0:
+								m = "osu"
+							if self.gameMode == 1:
+								m = "taiko"
+							if self.gameMode == 2:
+								m = "fruits"
+							if self.gameMode == 3:
+								m = "mania"
+							with open(os.path.join("{}/{}".format(folder, m), f"replay-{m}_{s.beatmapId}_{s.scoreID}.osr"), "wb") as f:
+								f.write(replay)
+						else:
+							with open(os.path.join(folder, replayFileName), "wb") as f:
+								f.write(replay)
 
 					def replayUploadBgWork():
 						log.debug("Started replay uplaod background job")
@@ -344,10 +356,9 @@ class handler(requestsManager.asyncRequestHandler):
 							log.debug("Replay upload background job finished. ok = {}".format(ok))
 
 					saveLocally(glob.conf["REPLAYS_FOLDER"])
+					saveLocally(glob.conf["OSU_WEB_REPLAYS_FOLDER"], true)
 					if glob.conf.s3_enabled:
 						threading.Thread(target=replayUploadBgWork, daemon=False).start()
-					else:
-						log.warning("S3 Replays upload disabled! Only saving locally.")
 
 					# Send to cono ALL passed replays, even non high-scores
 					if glob.conf["CONO_ENABLE"]:
