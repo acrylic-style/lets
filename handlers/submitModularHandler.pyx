@@ -326,13 +326,13 @@ class handler(requestsManager.asyncRequestHandler):
 					def saveLocally(folder, osu_web = False):
 						log.debug("Saving {} locally in {}".format(replayFileName, folder))
 						if osu_web:
-							if self.gameMode == 0:
+							if s.gameMode == 0:
 								m = "osu"
-							if self.gameMode == 1:
+							if s.gameMode == 1:
 								m = "taiko"
-							if self.gameMode == 2:
+							if s.gameMode == 2:
 								m = "fruits"
-							if self.gameMode == 3:
+							if s.gameMode == 3:
 								m = "mania"
 							with open(os.path.join("{}/{}".format(folder, m), f"replay-{m}_{s.beatmapId}_{s.scoreID}.osr"), "wb") as f:
 								f.write(replay)
