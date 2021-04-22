@@ -435,13 +435,24 @@ class score:
 				)
 				userUtils.updateAccuracy(userID, self.gameMode)
 
-			query = "INSERT INTO osu_scores{} (scorechecksum, beatmap_id, beatmapset_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, high_score_id) VALUES (0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gm)
+			scoreIds = glob.db.fetch("SELECT osu_scores.score_id AS s0, osu_scores_taiko.score_id AS s1, osu_scores_fruits.score_id AS s2, osu_scores_mania.score_id AS s3 FROM osu_scores, osu_scores_taiko, osu_scores_fruits, osu_scores_mania ORDER BY osu_scores.score_id DESC, osu_scores_taiko.score_id DESC, osu_scores_fruits.score_id DESC, osu_scores_mania.score_id DESC LIMIT 1;")
+				if scoreIds is not None:
+					nextId = max(
+						scoreIds["s0"] if scoreIds["s0"] is not None else 0,
+						scoreIds["s1"] if scoreIds["s1"] is not None else 0,
+						scoreIds["s2"] if scoreIds["s2"] is not None else 0,
+						scoreIds["s3"] if scoreIds["s3"] is not None else 0,
+						0
+					) + 1
+				else:
+					nextId = 1
+			query = "INSERT INTO osu_scores{} (score_id, scorechecksum, beatmap_id, beatmapset_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, high_score_id) VALUES (%s, 0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gm)
 			if self.scoreID is None or self.scoreID is 0:
 				sid = None
 			else:
 				sid = self.scoreID
 
-			sid = int(glob.db.execute(query, [bm["beatmap_id"], bm["beatmapset_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), sid]))
+			sid = int(glob.db.execute(query, [nextId, bm["beatmap_id"], bm["beatmapset_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), sid]))
 
 			if self.scoreID is None or self.scoreID is 0:
 				self.scoreID = sid
