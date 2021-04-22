@@ -17,6 +17,9 @@ class handler(requestsManager.asyncRequestHandler):
 	@tornado.gen.engine
 	@sentry.captureTornado
 	def asyncGet(self):
+		if True:
+			self.write("0\n")
+			return
 		output = ""
 		try:
 			# Get data by beatmap id or beatmapset id
