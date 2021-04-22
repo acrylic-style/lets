@@ -369,12 +369,22 @@ class score:
 					)
 			gm = gameModes.getGameModeForDB(self.gameMode)
 			if self.passed:
+				scoreIds = glob.db.fetch("SELECT osu_scores_high.score_id AS s0, osu_scores_taiko_high.score_id AS s1, osu_scores_fruits_high.score_id AS s2, osu_scores_mania_high.score_id AS s3 FROM osu_scores_high, osu_scores_taiko_high, osu_scores_fruits_high, osu_scores_mania_high ORDER BY osu_scores_high.score_id DESC, osu_scores_taiko_high.score_id DESC, osu_scores_fruits_high.score_id DESC, osu_scores_mania_high.score_id DESC LIMIT 1;")
+				if scoreIds is not None:
+					nextId = max(
+						scoreIds["s0"] if scoreIds["s0"] is not None else 0,
+						scoreIds["s1"] if scoreIds["s1"] is not None else 0,
+						scoreIds["s2"] if scoreIds["s2"] is not None else 0,
+						scoreIds["s3"] if scoreIds["s3"] is not None else 0,
+						0
+					) + 1
+				else:
+					nextId = 1
+				self.scoreID = nextId
 				dupe = glob.db.fetch("SELECT `rank` FROM osu_scores{}_high WHERE beatmap_id = %s AND user_id = %s".format(gm), (bm["beatmap_id"], userID,))
 				glob.db.execute("UPDATE osu_beatmaps SET passcount = passcount + 1 WHERE beatmap_id = %s LIMIT 1", (bm["beatmap_id"],))
-				query = "INSERT INTO osu_scores{}_high (score_id, beatmap_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, `pp`, `country_acronym`) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gm)
-				self.scoreID = int(glob.db.execute(query, [bm["beatmap_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), self.pp, country]))
-				# set replay id
-				glob.db.execute("UPDATE osu_scores{}_high SET `replay` = %s WHERE score_id = %s LIMIT 1".format(gm), (self.scoreID, self.scoreID,))
+				query = "INSERT INTO osu_scores{}_high (score_id, beatmap_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, `pp`, `country_acronym`, `replay`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 1);".format(gm)
+				glob.db.execute(query, [nextId, bm["beatmap_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), self.pp, country])
 				pn = self.playerName
 				bid = bm["beatmap_id"]
 				gmm = self.gameMode
