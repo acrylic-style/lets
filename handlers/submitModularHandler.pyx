@@ -355,8 +355,11 @@ class handler(requestsManager.asyncRequestHandler):
 						finally:
 							log.debug("Replay upload background job finished. ok = {}".format(ok))
 
-					saveLocally(glob.conf["REPLAYS_FOLDER"])
-					saveLocally(glob.conf["OSU_WEB_REPLAYS_FOLDER"], true)
+					try:
+						saveLocally(glob.conf["REPLAYS_FOLDER"])
+						saveLocally(glob.conf["OSU_WEB_REPLAYS_FOLDER"], true)
+					except Exception as e:
+						log.error("Error while saving replay to local ({})".format(e))
 					if glob.conf.s3_enabled:
 						threading.Thread(target=replayUploadBgWork, daemon=False).start()
 
