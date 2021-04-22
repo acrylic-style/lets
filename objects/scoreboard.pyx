@@ -111,7 +111,7 @@ class scoreboard:
 
 		# Output our personal best if found
 		if personalBestScoreID is not None:
-			s = score.score(personalBestScoreID)
+			s = score.score(personalBestScoreID, gameMode = self.gameMode)
 			self.scores[0] = s
 		else:
 			# No personal best
@@ -127,7 +127,7 @@ class scoreboard:
 				"ON osu_scores{}_high.user_id = phpbb_users.user_id " \
 				f" {join_stats} " \
 				"WHERE osu_scores{}_high.beatmap_id = %(beatmap_id)s " \
-				"AND (phpbb_users.user_id = %(userid)s)".format(mode, mode, mode, mode) # this is so stupid
+				"AND ((phpbb_users.user_type = 0 AND phpbb_users.user_warnings = 0) OR phpbb_users.user_id = %(userid)s)".format(mode, mode, mode, mode) # this (format) is so stupid
 
 		# Country ranking
 		if self.country:
@@ -174,7 +174,7 @@ class scoreboard:
 		# for c, topScore in enumerate(topScores):
 		for topScore in topScores:
 			# Create score object
-			s = score.score(topScore["score_id"], setData=False)
+			s = score.score(topScore["score_id"], setData=False, gameMode = self.gameMode)
 
 			# Set data and rank from topScores's row
 			s.setDataFromDict(topScore)

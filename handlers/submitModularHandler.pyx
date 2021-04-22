@@ -224,7 +224,7 @@ class handler(requestsManager.asyncRequestHandler):
 					oldScoreboard = scoreboard.scoreboard(username, s.gameMode, beatmapInfo, False, relax=s.isRelax)
 					oldScoreboard.setPersonalBestRank()
 					oldPersonalBestRank = max(oldScoreboard.personalBestRank, 0)
-				oldPersonalBest = score.score(s.oldPersonalBest, oldPersonalBestRank)
+				oldPersonalBest = score.score(s.oldPersonalBest, oldPersonalBestRank, gameMode = s.gameMode)
 			else:
 				oldPersonalBestRank = 0
 				oldPersonalBest = None
@@ -282,8 +282,7 @@ class handler(requestsManager.asyncRequestHandler):
 			# Hanno mess le panghina le fondane iffiori
 			# LALALALALALALALALA
 			if s.score < 0 or s.score > (2 ** 63) - 1:
-				userUtils.ban(userID)
-				userUtils.appendNotes(userID, "Banned due to negative score (score submitter)")
+				userUtils.appendNotes(userID, "Tried to submit a score with negative score: {}".format(s.score))
 
 			# Make sure the score is not memed
 			if s.gameMode == gameModes.MANIA and s.score > 1000000:

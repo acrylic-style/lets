@@ -18,7 +18,7 @@ class score:
 	             "fullCombo", "mods", "playerUserID","rank","date", "hasReplay", "fileMd5", "passed", "playDateTime",
 	             "gameMode", "completed", "accuracy", "pp", "oldPersonalBest", "rankedScoreIncrease",
 				 "_playTime", "_fullPlayTime", "quit", "failed", "beatmapId"]
-	def __init__(self, scoreID = None, rank = None, setData = True):
+	def __init__(self, scoreID = None, rank = None, setData = True, gameMode = 0):
 		"""
 		Initialize a (empty) score object.
 
@@ -47,7 +47,7 @@ class score:
 		self.fileMd5 = None
 		self.passed = False
 		self.playDateTime = 0
-		self.gameMode = 0
+		self.gameMode = gameMode
 		self.completed = 0
 
 		self.accuracy = 0.00
@@ -147,8 +147,14 @@ class score:
 		rank -- rank in scoreboard. Optional.
 		"""
 		# TODO: gamemode
-		data = glob.db.fetch("SELECT osu_scores.*, phpbb_users.username FROM osu_scores LEFT JOIN phpbb_users ON phpbb_users.user_id = osu_scores.user_id WHERE osu_scores.high_score_id = %s LIMIT 1", [scoreID])
-		high_data = glob.db.fetch("SELECT * FROM osu_scores_high WHERE score_id = %s LIMIT 1", [scoreID])
+		data = glob.db.fetch(
+			"SELECT osu_scores{}.*, phpbb_users.username FROM osu_scores{} LEFT JOIN phpbb_users ON phpbb_users.user_id = osu_scores{}.user_id WHERE osu_scores{}.high_score_id = %s LIMIT 1".format(self.gameMode, self.gameMode, self.gameMode, self.gameMode),
+			[scoreID]
+		)
+		high_data = glob.db.fetch(
+			"SELECT * FROM osu_scores{}_high WHERE score_id = %s LIMIT 1".format(self.gameMode),
+			[scoreID]
+		)
 		if data is None:
 			data = high_data
 
@@ -158,6 +164,7 @@ class score:
 				data["pp"] = high_data["pp"]
 				data["high"] = 1
 			data["beatmap_md5"] = bm["checksum"]
+			data["gameMode"] = self.gameMode
 			self.setDataFromDict(data, rank)
 
 	def setDataFromDict(self, data, rank = None):
@@ -178,7 +185,7 @@ class score:
 		self.playerUserID = data["user_id"]
 		self.score = data["score"]
 		self.maxCombo = data["maxcombo"]
-		self.gameMode = 0 # TODO: FIX THIS PLEASE
+		self.gameMode = data["gameMode"] if "gameMode" in data else 0
 		self.c50 = data["count50"]
 		self.c100 = data["count100"]
 		self.c300 = data["count300"]
