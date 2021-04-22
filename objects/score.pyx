@@ -12,7 +12,6 @@ from common.ripple import scoreUtils
 from objects import glob
 from datetime import datetime
 
-# TODO: GIVE THEM GAMEMODE PARAM IN CONSTRUCTOR!!!!!
 class score:
 	__slots__ = ["scoreID", "playerName", "score", "maxCombo", "c50", "c100", "c300", "cMiss", "cKatu", "cGeki",
 	             "fullCombo", "mods", "playerUserID","rank","date", "hasReplay", "fileMd5", "passed", "playDateTime",
