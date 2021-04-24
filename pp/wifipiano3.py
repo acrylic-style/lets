@@ -6,6 +6,7 @@ import subprocess
 from common.log import logUtils as log
 from helpers import mapsHelper
 from objects import glob
+from constants.mods import getModsForPP
 
 latency = glob.stats["pp_calc_latency_seconds"].labels(game_mode="mania", relax="0")
 excC = glob.stats["pp_calc_failures"].labels(game_mode="mania", relax="0")
@@ -26,16 +27,16 @@ class WiFiPiano:
 
 	def _runProcess(self):
 		# Run with dotnet
+		mpp = getModsForPP(self.score.mods)
 		command = \
-			"dotnet pp/maniapp-osu-tools/PerformanceCalculator/bin/Release/netcoreapp2.0/PerformanceCalculator.dll " \
-			"performance {map} " \
-			"-mode 3 " \
-			"-score {score_.score} " \
-			"-acc {acc} " \
-			"-mods {score_.mods} ".format(
+			"dotnet pp/osu-tools/PerformanceCalculator/bin/Release/netcoreapp3.1/PerformanceCalculator.dll " \
+			"simulate mania {map} " \
+			"-s {score_.score} " \
+			"-m {mpp} ".format(
 				map=self.mapPath,
 				score_=self.score,
-				acc=self.score.accuracy * 100
+				acc=self.score.accuracy * 100,
+				mpp=mpp
 			)
 		log.debug("wifipiano3 ~> running {}".format(command))
 		process = subprocess.run(command, shell=True, stdout=subprocess.PIPE)

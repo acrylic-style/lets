@@ -1,122 +1,84 @@
-import contextlib
+import subprocess
 
 from common.log import logUtils as log
-from common.constants import gameModes, mods
-from constants import exceptions
 from helpers import mapsHelper
 from objects import glob
+from constants.mods import getModsForPP
 
-#from pp.catch_the_pp.osu_parser.beatmap import Beatmap as CalcBeatmap
-#from pp.catch_the_pp.osu.ctb.difficulty import Difficulty
-#from pp.catch_the_pp import ppCalc
+latency = glob.stats["pp_calc_latency_seconds"].labels(game_mode="ctb", relax="0")
+excC = glob.stats["pp_calc_failures"].labels(game_mode="ctb", relax="0")
 
-stats = {
-    "latency": {
-        "classic":glob.stats["pp_calc_latency_seconds"].labels(game_mode="ctb", relax="0"),
-        "relax": glob.stats["pp_calc_latency_seconds"].labels(game_mode="ctb", relax="1")
-    },
-    "failures": {
-        "classic": glob.stats["pp_calc_failures"].labels(game_mode="ctb", relax="0"),
-        "relax": glob.stats["pp_calc_failures"].labels(game_mode="ctb", relax="1"),
-    }
-}
+
+class PianoError(Exception):
+	pass
 
 
 class Cicciobello:
-    def __init__(self, beatmap_, score_=None, accuracy=1, mods_=mods.NOMOD, combo=None, misses=0, tillerino=False):
-        # Beatmap is always present
-        self.beatmap = beatmap_
+	__slots__ = ["beatmap", "score", "pp"]
 
-        # If passed, set everything from score object
-        self.score = None
-        if score_ is not None:
-            self.score = score_
-            self.accuracy = self.score.accuracy
-            self.mods = self.score.mods
-            self.combo = self.score.maxCombo
-            self.misses = self.score.cMiss
-        else:
-            # Otherwise, set acc and mods from params (tillerino)
-            self.accuracy = accuracy
-            self.mods = mods_
-            self.combo = combo
-            if self.combo is None or self.combo < 0:
-                self.combo = self.beatmap.maxCombo
-            self.misses = misses
+	def __init__(self, beatmap_, score_):
+		self.beatmap = beatmap_
+		self.score = score_
+		self.pp = 0
+		self.getPP()
 
-        # Multiple acc values computation
-        self.tillerino = tillerino
+	def _runProcess(self):
+		# Run with dotnet
+		mpp = getModsForPP(self.score.mods)
+		command = \
+			"dotnet pp/osu-tools/PerformanceCalculator/bin/Release/netcoreapp3.1/PerformanceCalculator.dll " \
+			"simulate catch {map} " \
+			"-a {acc}" \
+			"-X {score_.cMiss}" \
+			"-c {score_.maxCombo} " \
+			"-m {mpp} ".format(
+				map=self.mapPath,
+				score_=self.score,
+				acc=self.score.accuracy * 100,
+				mpp=mpp
+			)
+		log.debug("cicciobello ~> running {}".format(command))
+		process = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
 
-        # Result
-        self.pp = 0
-        self.stars = 0
-        self.calculate_pp()
+		# Get pp from output
+		output = process.stdout.decode("utf-8", errors="ignore")
+		log.debug("cicciobello ~> output: {}".format(output))
+		lines = output.split("\n")
+		found = False
+		pp = 0.
+		for line in lines:
+			parts = [x.strip().lower() for x in line.split(":")]
+			if parts[0] != "pp":
+				continue
+			found = True
+			try:
+				pp = float(parts[1])
+			except ValueError:
+				raise PianoError("Invalid 'pp' value (got '{}', expected a float)".format(parts[1]))
+		if not found:
+			raise PianoError("No 'pp' in PerformanceCalculator.dll output")
+		log.debug("cicciobello ~> returned pp: {}".format(pp))
+		return pp
 
-    @property
-    def unrelaxMods(self):
-        return self.mods & ~(mods.RELAX | mods.RELAX2)
+	@latency.time()
+	def getPP(self):
+		try:
+			# Reset pp
+			self.pp = 0
 
-    def _calculate_pp(self):
-        try:
-            # Cache beatmap
-            mapFile = mapsHelper.cachedMapPath(self.beatmap.beatmapId)
-            mapsHelper.cacheMap(mapFile, self.beatmap)
+			# Cache map
+			mapsHelper.cacheMap(self.mapPath, self.beatmap)
 
-            # TODO: Sanizite mods
+			# Calculate pp
+			self.pp = self._runProcess()
+		except PianoError:
+			log.warning("Invalid beatmap {}".format(self.beatmap.beatmapId))
+			self.pp = 0
+		finally:
+			if self.pp == 0 and excC is not None:
+				excC.inc()
+			return self.pp
 
-            # Gamemode check
-            #if self.score is not None and self.score.gameMode != gameModes.CTB:
-            raise exceptions.unsupportedGameModeException()
-
-            # Calculate difficulty
-            calcBeatmap = CalcBeatmap(mapFile)
-            difficulty = Difficulty(beatmap=calcBeatmap, mods=self.unrelaxMods)
-            self.stars = difficulty.star_rating
-
-            # Calculate pp
-            if self.tillerino:
-                results = []
-                for acc in (1, 0.99, 0.98, 0.95):
-                    results.append(ppCalc.calculate_pp(
-                        diff=difficulty,
-                        accuracy=acc,
-                        combo=self.combo if self.combo >= 0 else calcBeatmap.max_combo,
-                        miss=self.misses
-                    ))
-                self.pp = results
-            else:
-                # Accuracy check
-                if self.accuracy > 1:
-                    raise ValueError("Accuracy must be between 0 and 1")
-                self.pp = ppCalc.calculate_pp(
-                    diff=difficulty,
-                    accuracy=self.accuracy,
-                    combo=self.combo if self.combo >= 0 else calcBeatmap.max_combo,
-                    miss=self.misses
-                )
-        except exceptions.osuApiFailException:
-            log.error("cicciobello ~> osu!api error!")
-            self.pp = 0
-        except exceptions.unsupportedGameModeException:
-            log.error("cicciobello ~> Unsupported gamemode")
-            self.pp = 0
-        except Exception as e:
-            log.error("cicciobello ~> Unhandled exception: {}".format(str(e)))
-            self.pp = 0
-            raise
-        finally:
-            log.debug("cicciobello ~> Shutting down, pp = {}".format(self.pp))
-
-    def calculate_pp(self):
-        latencyCtx = contextlib.suppress()
-        excC = None
-        if not self.tillerino:
-            latencyCtx = stats["latency"]["classic" if not self.score.isRelax else "relax"].time()
-            excC = stats["failures"]["classic" if not self.score.isRelax else "relax"]
-
-        with latencyCtx:
-            try:
-                return self._calculate_pp()
-            finally:
-                if not self.tillerino and self.pp == 0 and excC is not None:
-                    excC.inc()
+	@property
+	def mapPath(self):
+		return mapsHelper.cachedMapPath(self.beatmap.beatmapId)
