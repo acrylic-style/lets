@@ -32,7 +32,7 @@ class WiFiPiano:
 			"dotnet pp/osu-tools/PerformanceCalculator/bin/Release/netcoreapp3.1/PerformanceCalculator.dll " \
 			"simulate mania {map} " \
 			"-s {score_.score} " \
-			"-m {mpp} ".format(
+			"{mpp} ".format(
 				map=self.mapPath,
 				score_=self.score,
 				acc=self.score.accuracy * 100,

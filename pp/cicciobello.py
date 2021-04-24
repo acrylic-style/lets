@@ -31,7 +31,7 @@ class Cicciobello:
 			"-a {acc}" \
 			"-X {score_.cMiss}" \
 			"-c {score_.maxCombo} " \
-			"-m {mpp} ".format(
+			"{mpp} ".format(
 				map=self.mapPath,
 				score_=self.score,
 				acc=self.score.accuracy * 100,
