@@ -28,8 +28,8 @@ class Cicciobello:
 		command = \
 			"dotnet pp/osu-tools/PerformanceCalculator/bin/Release/netcoreapp3.1/PerformanceCalculator.dll " \
 			"simulate catch {map} " \
-			"-a {acc}" \
-			"-X {score_.cMiss}" \
+			"-a {acc} " \
+			"-X {score_.cMiss} " \
 			"-c {score_.maxCombo} " \
 			"{mpp} ".format(
 				map=self.mapPath,
