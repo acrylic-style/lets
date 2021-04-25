@@ -139,7 +139,7 @@ class beatmap:
 		"""
 		# Get data from DB
 		std = objects.glob.db.fetch(
-			"SELECT osu_beatmapsets.approved, osu_beatmapsets.last_update, osu_beatmapsets.rating, osu_beatmapsets.title, osu_beatmaps.checksum, "
+			"SELECT osu_beatmapsets.approved, osu_beatmaps.last_update, osu_beatmapsets.rating, osu_beatmapsets.title, osu_beatmaps.checksum, "
 			"osu_beatmaps.hit_length, osu_beatmaps.difficultyrating, osu_beatmaps.bpm, osu_beatmaps.countNormal, osu_beatmaps.countSlider, "
 			"osu_beatmaps.countSpinner, osu_beatmaps.diff_drain, osu_beatmaps.diff_size, osu_beatmaps.diff_overall, osu_beatmaps.diff_approach, "
 			"osu_beatmaps.playcount, osu_beatmaps.passcount, osu_beatmaps.approved, osu_beatmaps.beatmap_id, osu_beatmaps.beatmapset_id "
@@ -151,7 +151,7 @@ class beatmap:
 
 		if data is None:
 			data = objects.glob.db.fetch(
-				"SELECT osu_beatmapsets.approved, osu_beatmapsets.last_update, osu_beatmapsets.rating, osu_beatmapsets.title, osu_beatmaps.checksum, "
+				"SELECT osu_beatmapsets.approved, osu_beatmaps.last_update, osu_beatmapsets.rating, osu_beatmapsets.title, osu_beatmaps.checksum, "
 				"osu_beatmaps.hit_length, osu_beatmaps.difficultyrating, osu_beatmaps.bpm, osu_beatmaps.countNormal, osu_beatmaps.countSlider, "
 				"osu_beatmaps.countSpinner, osu_beatmaps.diff_drain, osu_beatmaps.diff_size, osu_beatmaps.diff_overall, osu_beatmaps.diff_approach, "
 				"osu_beatmaps.playcount, osu_beatmaps.passcount, osu_beatmaps.approved, osu_beatmaps.beatmap_id, osu_beatmaps.beatmapset_id "
