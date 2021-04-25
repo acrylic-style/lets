@@ -14,3 +14,4 @@ common_refractor
 *.log
 .pyenv
 venv/
+.env
