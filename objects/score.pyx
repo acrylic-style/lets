@@ -286,10 +286,10 @@ class score:
 				else:
 					beatmapId = r["beatmap_id"]
 				duplicate = glob.db.fetch(
-					"SELECT score_id FROM osu_scores{} "
+					f"SELECT score_id FROM osu_scores{gameModes.getGameModeForDB(self.gameMode)} "
 					"WHERE user_id = %s AND beatmap_id = %s "
 					"AND score = %s AND enabled_mods = %s AND `date` >= %s "
-					"LIMIT 1".format(gameModes.getGameModeForDB(self.gameMode)),
+					"LIMIT 1",
 					(
 						userID, beatmapId, self.score, self.mods, datetime.fromtimestamp(int(time.time()) - 120).strftime('%Y-%m-%d %H:%M:%S'),
 					)
@@ -382,9 +382,9 @@ class score:
 				else:
 					nextId = 1
 				self.scoreID = nextId
-				dupe = glob.db.fetch("SELECT `rank` FROM osu_scores{}_high WHERE beatmap_id = %s AND user_id = %s".format(gm), (bm["beatmap_id"], userID,))
+				dupe = glob.db.fetch(f"SELECT `rank` FROM osu_scores{gm}_high WHERE beatmap_id = %s AND user_id = %s", (bm["beatmap_id"], userID,))
 				glob.db.execute("UPDATE osu_beatmaps SET passcount = passcount + 1 WHERE beatmap_id = %s LIMIT 1", (bm["beatmap_id"],))
-				query = "INSERT INTO osu_scores{}_high (score_id, beatmap_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, `pp`, `country_acronym`, `replay`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 1);".format(gm)
+				query = f"INSERT INTO osu_scores{gm}_high (score_id, beatmap_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, `pp`, `country_acronym`, `replay`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 1);"
 				glob.db.execute(query, [nextId, bm["beatmap_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), self.pp, country])
 				pn = self.playerName
 				bid = bm["beatmap_id"]
@@ -424,14 +424,14 @@ class score:
 					if rank == "XH" or rank == "X" or rank == "SH" or rank == "S" or rank == "A":
 						glob.db.execute("UPDATE osu_user_stats{} SET {}_rank_count = {}_rank_count - 1 WHERE user_id = %s LIMIT 1".format(gm, rank.lower(), rank.lower()), (userID,))
 				if rankNumber == 1:
-					glob.db.execute("DELETE FROM osu_leaders{} WHERE beatmap_id = %s".format(gm), bid)
+					glob.db.execute(f"DELETE FROM osu_leaders{gm} WHERE beatmap_id = %s", bid)
 					glob.db.execute(
-						"INSERT INTO osu_leaders{} (`beatmap_id`, `user_id`, `score_id`) VALUES (%s, %s, %s)".format(gm),
+						f"INSERT INTO osu_leaders{gm} (`beatmap_id`, `user_id`, `score_id`) VALUES (%s, %s, %s)",
 						(bid, userID, self.scoreID,)
 					)
 				# Update accuracy
 				glob.db.execute(
-					"UPDATE osu_user_stats{} SET accuracy_total = accuracy_total + %s, accuracy_count = accuracy_count + 1 WHERE user_id = %s LIMIT 1".format(gm),
+					f"UPDATE osu_user_stats{gm} SET accuracy_total = accuracy_total + %s, accuracy_count = accuracy_count + 1 WHERE user_id = %s LIMIT 1",
 					(self.accuracy * 10000, userID,)
 				)
 				userUtils.updateAccuracy(userID, self.gameMode)
@@ -447,7 +447,7 @@ class score:
 				) + 1
 			else:
 				nextId = 1
-			query = "INSERT INTO osu_scores{} (score_id, scorechecksum, beatmap_id, beatmapset_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, high_score_id) VALUES (%s, 0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(gm)
+			query = f"INSERT INTO osu_scores{gm} (score_id, scorechecksum, beatmap_id, beatmapset_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, high_score_id) VALUES (%s, 0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
 			if self.scoreID is None or self.scoreID is 0:
 				sid = None
 			else:
