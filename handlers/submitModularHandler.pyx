@@ -309,7 +309,7 @@ class handler(requestsManager.asyncRequestHandler):
 					replay = self.request.files["score"][0]["body"]
 
 
-					replayFileName = "replay_{}.osr".format(s.scoreID)
+					replayFileName = f"replay_{gameModes.getSafeGameMode(s.gameMode)}_{s.scoreID}.osr"
 
 					@timeout(5, use_signals=False)
 					def s3Upload():
@@ -326,14 +326,7 @@ class handler(requestsManager.asyncRequestHandler):
 					def saveLocally(folder, osu_web = False):
 						log.debug("Saving {} locally in {}".format(replayFileName, folder))
 						if osu_web:
-							if s.gameMode == 0:
-								m = "osu"
-							if s.gameMode == 1:
-								m = "taiko"
-							if s.gameMode == 2:
-								m = "fruits"
-							if s.gameMode == 3:
-								m = "mania"
+							m = gameModes.getSafeGameMode(s.gameMode)
 							with open(os.path.join("{}/{}".format(folder, m), f"replay-{m}_{beatmapInfo.beatmapId}_{s.scoreID}.osr"), "wb") as f:
 								f.write(replay)
 						else:

@@ -370,28 +370,16 @@ class score:
 					)
 			gm = gameModes.getGameModeForDB(self.gameMode)
 			if self.passed:
-				scoreIds = glob.db.fetch("SELECT osu_scores_high.score_id AS s0, osu_scores_taiko_high.score_id AS s1, osu_scores_fruits_high.score_id AS s2, osu_scores_mania_high.score_id AS s3 FROM osu_scores_high, osu_scores_taiko_high, osu_scores_fruits_high, osu_scores_mania_high ORDER BY osu_scores_high.score_id DESC, osu_scores_taiko_high.score_id DESC, osu_scores_fruits_high.score_id DESC, osu_scores_mania_high.score_id DESC LIMIT 1;")
-				if scoreIds is not None:
-					nextId = max(
-						scoreIds["s0"] if scoreIds["s0"] is not None else 0,
-						scoreIds["s1"] if scoreIds["s1"] is not None else 0,
-						scoreIds["s2"] if scoreIds["s2"] is not None else 0,
-						scoreIds["s3"] if scoreIds["s3"] is not None else 0,
-						0
-					) + 1
-				else:
-					nextId = 1
-				self.scoreID = nextId
 				dupe = glob.db.fetch(f"SELECT `rank` FROM osu_scores{gm}_high WHERE beatmap_id = %s AND user_id = %s", (bm["beatmap_id"], userID,))
 				glob.db.execute("UPDATE osu_beatmaps SET passcount = passcount + 1 WHERE beatmap_id = %s LIMIT 1", (bm["beatmap_id"],))
 				query = f"INSERT INTO osu_scores{gm}_high (score_id, beatmap_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, `pp`, `country_acronym`, `replay`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 1);"
-				glob.db.execute(query, [nextId, bm["beatmap_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), self.pp, country])
+				self.scoreID = int(glob.db.execute(query, [bm["beatmap_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), self.pp, country]))
 				pn = self.playerName
 				bid = bm["beatmap_id"]
 				gmm = self.gameMode
 				bt = bm["title"]
 				bv = bm["version"]
-				gmf = gameModes.getGamemodeFull(gmm)
+				gmf = gameModes.getWebGameMode(gmm)
 				# Update max combo count
 				glob.db.execute(f"UPDATE osu_user_stats{gm} SET max_combo = %s WHERE user_id = %s AND max_combo < %s", (self.maxCombo, userID, self.maxCombo,))
 				rankRes = glob.db.fetch(
@@ -401,11 +389,7 @@ class score:
 				if rankRes is not None:
 					rankNumber = rankRes["rank"]
 				else:
-					rankNumber = 0
-				if gmf == "Taiko":
-					gmf = "osu!taiko"
-				if gmf == "Catch The Beat":
-					gmf = "osu!catch"
+					rankNumber = 1
 				eventText = f"<img src='/images/{rank}_small.png'/> <b><a href='/u/{userID}'>{pn}</a></b> achieved rank #{rankNumber} on <a href='/b/{bid}?m={gmm}'>{bt} [{bv}]</a> ({gmf})"
 				glob.db.execute(
 					"INSERT INTO osu_events (`text`, `text_clean`, `beatmap_id`, `beatmapset_id`, `user_id`) VALUES (%s, %s, %s, %s, %s)",
@@ -436,42 +420,13 @@ class score:
 				)
 				userUtils.updateAccuracy(userID, self.gameMode)
 
-			scoreIds = glob.db.fetch("SELECT osu_scores.score_id AS s0, osu_scores_taiko.score_id AS s1, osu_scores_fruits.score_id AS s2, osu_scores_mania.score_id AS s3 FROM osu_scores, osu_scores_taiko, osu_scores_fruits, osu_scores_mania ORDER BY osu_scores.score_id DESC, osu_scores_taiko.score_id DESC, osu_scores_fruits.score_id DESC, osu_scores_mania.score_id DESC LIMIT 1;")
-			if scoreIds is not None:
-				nextId = max(
-					scoreIds["s0"] if scoreIds["s0"] is not None else 0,
-					scoreIds["s1"] if scoreIds["s1"] is not None else 0,
-					scoreIds["s2"] if scoreIds["s2"] is not None else 0,
-					scoreIds["s3"] if scoreIds["s3"] is not None else 0,
-					0
-				) + 1
-			else:
-				nextId = 1
-			query = f"INSERT INTO osu_scores{gm} (score_id, scorechecksum, beatmap_id, beatmapset_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, high_score_id) VALUES (%s, 0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+			query = f"INSERT INTO osu_scores{gm} (score_id, scorechecksum, beatmap_id, beatmapset_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, high_score_id) VALUES (NULL, 0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
 			if self.scoreID is None or self.scoreID is 0:
 				sid = None
 			else:
 				sid = self.scoreID
 
-			try:
-				sid = int(glob.db.execute(query, [nextId, bm["beatmap_id"], bm["beatmapset_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), sid]))
-			except IntegrityError:
-				# there's dupe. let's retry.
-				scoreIds = glob.db.fetch("SELECT osu_scores.score_id AS s0, osu_scores_taiko.score_id AS s1, osu_scores_fruits.score_id AS s2, osu_scores_mania.score_id AS s3 FROM osu_scores, osu_scores_taiko, osu_scores_fruits, osu_scores_mania ORDER BY osu_scores.score_id DESC, osu_scores_taiko.score_id DESC, osu_scores_fruits.score_id DESC, osu_scores_mania.score_id DESC LIMIT 1;")
-				if scoreIds is not None:
-					nextId = max(
-						scoreIds["s0"] if scoreIds["s0"] is not None else 0,
-						scoreIds["s1"] if scoreIds["s1"] is not None else 0,
-						scoreIds["s2"] if scoreIds["s2"] is not None else 0,
-						scoreIds["s3"] if scoreIds["s3"] is not None else 0,
-						0
-					) + 1
-				else:
-					nextId = 1
-				try:
-					sid = int(glob.db.execute(query, [nextId, bm["beatmap_id"], bm["beatmapset_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), sid]))
-				except:
-					log.error("Failed to submit score for {}".format(userID))
+			sid = int(glob.db.execute(query, [bm["beatmap_id"], bm["beatmapset_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), sid]))
 
 			if self.scoreID is None or self.scoreID is 0:
 				self.scoreID = sid
