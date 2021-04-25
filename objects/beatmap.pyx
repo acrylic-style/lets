@@ -51,6 +51,10 @@ class beatmap:
 		self.bpm = 0
 		self.rating = 0
 		self.ranked = 0
+		self.starsStd = 0
+		self.starsTaiko = 0
+		self.starsCtb = 0
+		self.starsMania = 0
 
 		self.songName = ""
 
@@ -142,29 +146,6 @@ class beatmap:
 			"FROM osu_beatmaps LEFT JOIN osu_beatmapsets ON osu_beatmapsets.beatmapset_id = osu_beatmaps.beatmapset_id WHERE osu_beatmaps.checksum = %s AND osu_beatmaps.playmode = 0 LIMIT 1",
 			[md5]
 		)
-		taiko = objects.glob.db.fetch("SELECT difficultyrating FROM osu_beatmaps WHERE checksum = %s AND osu_beatmaps.playmode = 1 LIMIT 1", [md5])
-		ctb = objects.glob.db.fetch("SELECT difficultyrating FROM osu_beatmaps WHERE checksum = %s AND osu_beatmaps.playmode = 2 LIMIT 1", [md5])
-		mania = objects.glob.db.fetch("SELECT difficultyrating FROM osu_beatmaps WHERE checksum = %s AND osu_beatmaps.playmode = 3 LIMIT 1", [md5])
-
-		if std is not None:
-			self.starsStd = std["difficultyrating"]
-		else:
-			self.starsStd = 0
-
-		if taiko is not None:
-			self.starsTaiko = taiko["difficultyrating"]
-		else:
-			self.starsTaiko = 0
-
-		if ctb is not None:
-			self.starsCtb = ctb["difficultyrating"]
-		else:
-			self.starsCtb = 0
-
-		if mania is not None:
-			self.starsMania = mania["difficultyrating"]
-		else:
-			self.starsMania = 0
 
 		data = std
 
@@ -182,6 +163,31 @@ class beatmap:
 		if data is None:
 			return False
 
+		bid = data["beatmap_id"]
+		taiko = objects.glob.db.fetch("SELECT diff_unified FROM osu_beatmap_difficulty WHERE beatmap_id = %s AND mode = 1 LIMIT 1", [bid])
+		ctb = objects.glob.db.fetch("SELECT diff_unified FROM osu_beatmap_difficulty WHERE beatmap_id = %s AND mode = 2 LIMIT 1", [bid])
+		mania = objects.glob.db.fetch("SELECT diff_unified FROM osu_beatmap_difficulty WHERE beatmap_id = %s AND mode = 3 LIMIT 1", [bid])
+
+		if std is not None:
+			self.starsStd = std["difficultyrating"]
+		else:
+			self.starsStd = 0
+
+		if taiko is not None:
+			self.starsTaiko = taiko["diff_unified"]
+		else:
+			self.starsTaiko = 0
+
+		if ctb is not None:
+			self.starsCtb = ctb["diff_unified"]
+		else:
+			self.starsCtb = 0
+
+		if mania is not None:
+			self.starsMania = mania["diff_unified"]
+		else:
+			self.starsMania = 0
+
 		# Set cached data period
 		expire = objects.glob.conf["BEATMAP_CACHE_EXPIRE"]
 
@@ -196,7 +202,7 @@ class beatmap:
 			return False
 
 		# Data in DB, set beatmap data
-		log.debug("Got beatmap data from db")
+		log.debug(f"Got beatmap data from db (last updated: {lastUpd})")
 		data["difficulty_std"] = self.starsStd
 		data["difficulty_taiko"] = self.starsTaiko
 		data["difficulty_ctb"] = self.starsCtb
@@ -522,7 +528,7 @@ def incrementPlaycount(md5, passed):
 	"""
 	objects.glob.db.execute(
 		f"UPDATE osu_beatmaps "
-		f"SET playcount = playcount+1{', passcount = passcount+1' if passed else ''} "
+		f"SET playcount = playcount + 1 {', passcount = passcount+1' if passed else ''} "
 		f"WHERE checksum = %s LIMIT 1",
 		[md5]
 	)
