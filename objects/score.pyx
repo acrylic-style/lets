@@ -372,7 +372,7 @@ class score:
 			if self.passed:
 				dupe = glob.db.fetch(f"SELECT `rank` FROM osu_scores{gm}_high WHERE beatmap_id = %s AND user_id = %s", (bm["beatmap_id"], userID,))
 				glob.db.execute("UPDATE osu_beatmaps SET passcount = passcount + 1 WHERE beatmap_id = %s LIMIT 1", (bm["beatmap_id"],))
-				query = f"INSERT INTO osu_scores{gm}_high (score_id, beatmap_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, `pp`, `country_acronym`, `replay`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 1);"
+				query = f"INSERT INTO osu_scores{gm}_high (score_id, beatmap_id, user_id, `score`, maxcombo, `rank`, count50, count100, count300, countmiss, countgeki, countkatu, `perfect`, enabled_mods, `date`, `pp`, `country_acronym`, `replay`) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 1);"
 				self.scoreID = int(glob.db.execute(query, [bm["beatmap_id"], userID, self.score, self.maxCombo, rank, self.c50, self.c100, self.c300, self.cMiss, self.cGeki, self.cKatu, int(self.fullCombo), self.mods, datetime.fromtimestamp(self.playDateTime).strftime('%Y-%m-%d %H:%M:%S'), self.pp, country]))
 				pn = self.playerName
 				bid = bm["beatmap_id"]
