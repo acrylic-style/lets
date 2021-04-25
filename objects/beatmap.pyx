@@ -233,12 +233,16 @@ class beatmap:
 		self.playcount = int(data["playcount"]) if "playcount" in data else 0
 		self.passcount = int(data["passcount"]) if "passcount" in data else 0
 
-	def saveDataFromApi(self, filename, data):
+	def saveDataFromApi(self, filename, data, mode = 0):
 		"""
 		Save the data received from osu! api.
 		"""
 		if data is None:
 			return None
+		objects.glob.db.execute(
+			"INSERT INTO osu_beatmap_difficulty (`beatmap_id`, `mode`, `mods`, `diff_unified`) VALUES (%s, %s, 0, %s) ON DUPLICATE KEY UPDATE last_update = now()",
+			(data["beatmap_id"], mode, data["difficultyrating"],)
+		)
 		objects.glob.db.execute(
 			"INSERT INTO osu_beatmaps (`beatmap_id`, `beatmapset_id`, `user_id`, `filename`, `checksum`, `version`, `total_length`, `hit_length`, "
 			"`countTotal`, `countNormal`, `countSlider`, `countSpinner`, `diff_drain`, `diff_size`, `diff_overall`, `diff_approach`, `playmode`, "
@@ -261,7 +265,7 @@ class beatmap:
 				data["diff_size"],
 				data["diff_overall"],
 				data["diff_approach"],
-				data["mode"],
+				mode,
 				int(data["approved"]),
 				data["difficultyrating"],
 				data["playcount"],
@@ -356,10 +360,10 @@ class beatmap:
 		self.filename = "{} - {} ({}) [{}].osu".format(
 			mainData["artist"], mainData["title"], mainData["creator"], mainData["version"]
 		).replace("\\", "")
-		self.saveDataFromApi(self.filename, dataStd)
-		self.saveDataFromApi(self.filename, dataTaiko)
-		self.saveDataFromApi(self.filename, dataCtb)
-		self.saveDataFromApi(self.filename, dataMania)
+		self.saveDataFromApi(self.filename, dataStd, 0)
+		self.saveDataFromApi(self.filename, dataTaiko, 1)
+		self.saveDataFromApi(self.filename, dataCtb, 2)
+		self.saveDataFromApi(self.filename, dataMania, 3)
 		self.checksum = md5
 		self.last_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 		self.ranked = int(mainData["approved"])
