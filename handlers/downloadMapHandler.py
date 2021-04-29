@@ -1,13 +1,8 @@
-import requests
 import tornado.gen
 import tornado.web
-import time
-import hashlib
 
 from common.web import requestsManager
 from common.sentry import sentry
-from objects import glob
-import urllib.parse
 
 class handler(requestsManager.asyncRequestHandler):
 	"""

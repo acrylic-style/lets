@@ -23,7 +23,7 @@ from common.db import dbConnector
 from common.ddog import datadogClient
 from common.redis import pubSub
 from common.web import schiavo
-from handlers import apiCacheBeatmapHandler, rateHandler, changelogHandler
+from handlers import apiCacheBeatmapHandler, rateHandler, changelogHandler, avatarHandler
 from handlers import apiPPHandler
 from handlers import apiStatusHandler
 from handlers import banchoConnectHandler
@@ -49,7 +49,6 @@ from helpers import consoleHelper
 from common import agpl
 from objects import glob
 from pubSubHandlers import beatmapUpdateHandler
-#import secret.achievements.utils
 
 
 def make_app():
@@ -92,6 +91,8 @@ def make_app():
 		(r"/web/osu-addfavourite.php", emptyHandler.handler),
 
 		(r"/loadTest", loadTestHandler.handler),
+
+		(r"^/(\d+)$", avatarHandler.handler)
 	], default_handler_class=defaultHandler.handler)
 
 
