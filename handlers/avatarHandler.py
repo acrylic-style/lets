@@ -16,7 +16,7 @@ class handler(requestsManager.asyncRequestHandler):
 	@tornado.web.asynchronous
 	@tornado.gen.engine
 	@sentry.captureTornado
-	def asyncGet(self, uid):
+	def asyncGet(self, uid, *, unused=0):
 		try:
 			ct = int(time.time()) * 10
 			res = requests.get(f"https://osu.acrylicstyle.xyz/uploads-avatar/{uid}?{ct}")
