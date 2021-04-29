@@ -37,7 +37,7 @@ class handler(requestsManager.asyncRequestHandler):
 			username = self.get_argument("u")
 			password = self.get_argument("h")
 			replayID = self.get_argument("c")
-			game_mode = self.get_argument("m")
+			game_mode = int(self.get_argument("m"))
 
 			# Login check
 			userID = userUtils.getID(username)
