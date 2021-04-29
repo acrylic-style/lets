@@ -1,9 +1,13 @@
 import requests
 import tornado.gen
 import tornado.web
+import time
+import hashlib
 
 from common.web import requestsManager
 from common.sentry import sentry
+from objects import glob
+import urllib.parse
 
 class handler(requestsManager.asyncRequestHandler):
 	"""
@@ -22,8 +26,10 @@ class handler(requestsManager.asyncRequestHandler):
 			bid = int(bid)
 
 			nv = "0" if noVideo else "1"
-			response = requests.get(f"https://api.chimu.moe/v1/download/{bid}?n={nv}", timeout=5)
-			self.write(response.content)
+			self.set_status(302, "Moved Temporarily")
+			self.add_header("Location", f"https://api.chimu.moe/v1/download/{bid}?n={nv}")
+			self.add_header("Cache-Control", "no-cache")
+			self.add_header("Pragma", "no-cache")
 		except ValueError:
 			self.set_status(400)
 			self.write("Invalid set id")
