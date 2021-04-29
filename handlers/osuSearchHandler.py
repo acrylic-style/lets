@@ -38,8 +38,6 @@ class handler(requestsManager.asyncRequestHandler):
 
 				query = self.get_argument("q", "")
 				page = int(self.get_argument("p", "0"))
-				if query.lower() in ["newest", "top rated", "most played"]:
-					query = ""
 			except ValueError:
 				raise exceptions.invalidArgumentsException(self.MODULE_NAME)
 
@@ -50,9 +48,16 @@ class handler(requestsManager.asyncRequestHandler):
 				raise exceptions.noAPIDataError()
 			if approved == 999:
 				approved = "1 OR 2"
+			sort = ""
+			if query.lower() == "newest":
+				sort = "ORDER BY approved_date DESC"
+			if query.lower() == "top rated":
+				sort = "ORDER BY rating DESC"
+			if query.lower() == "most played":
+				sort = "ORDER BY playcount DESC"
 
 			res = glob.db.fetchAll(
-				f"SELECT * FROM (SELECT * FROM osu_beatmapsets WHERE approved = {approved} LIMIT %s, 100) a LEFT JOIN (SELECT * FROM osu_beatmaps) b ON a.beatmapset_id = b.beatmapset_id",
+				f"SELECT * FROM (SELECT * FROM osu_beatmapsets WHERE approved = {approved} {sort} LIMIT %s, 100) a LEFT JOIN (SELECT * FROM osu_beatmaps) b ON a.beatmapset_id = b.beatmapset_id",
 				(
 					page * 100,
 				)
