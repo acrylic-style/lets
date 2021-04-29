@@ -24,6 +24,10 @@ class handler(requestsManager.asyncRequestHandler):
 			# Get request ip
 			ip = self.getRequestIP()
 
+			# Print arguments
+			if glob.conf["DEBUG"]:
+				requestsManager.printArguments(self)
+
 			# Check arguments
 			if not requestsManager.checkArguments(self.request.arguments, ["c", "u", "h"]):
 				raise exceptions.invalidArgumentsException(self.MODULE_NAME)
@@ -43,12 +47,12 @@ class handler(requestsManager.asyncRequestHandler):
 				raise exceptions.need2FAException(self.MODULE_NAME, username, ip)
 
 			# Get user ID
-			replayData = glob.db.fetch("SELECT osu_scores.*, phpbb_users.username AS uname FROM osu_scores LEFT JOIN phpbb_users ON osu_scores.user_id = phpbb_users.user_id WHERE osu_scores.score_id = %s", [replayID])
+			replayData = glob.db.fetch("SELECT osu_scores.*, phpbb_users.username FROM osu_scores LEFT JOIN phpbb_users ON osu_scores.user_id = phpbb_users.user_id WHERE osu_scores.score_id = %s", [replayID])
 
 			# Increment 'replays watched by others' if needed
 			if replayData is not None:
-				if username != replayData["uname"]:
-					userUtils.incrementReplaysWatched(replayData["userid"], replayData["play_mode"])
+				if username != replayData["username"]:
+					userUtils.incrementReplaysWatched(replayData["user_id"], replayData["play_mode"])
 
 			# Serve replay
 			log.info("Serving replay_{}.osr".format(replayID))
