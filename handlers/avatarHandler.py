@@ -17,12 +17,13 @@ class handler(requestsManager.asyncRequestHandler):
 	@sentry.captureTornado
 	def asyncGet(self, uid):
 		try:
-			self.add_header("Content-Type", "image/png")
-			self.add_header("Cache-Control", "no-cache")
-			self.add_header("Pragma", "no-cache")
 			ct = int(time.time()) * 10
 			res = requests.get(f"https://osu.acrylicstyle.xyz/uploads-avatar/{uid}?{ct}")
 			self.write(res.content)
 		except requests.RequestException:
 			with open("./guest.png", "rb") as f:
 				self.write(f.read())
+		finally:
+			self.add_header("Content-Type", "image/png")
+			self.add_header("Cache-Control", "no-cache")
+			self.add_header("Pragma", "no-cache")
