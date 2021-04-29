@@ -31,14 +31,14 @@ class handler(requestsManager.asyncRequestHandler):
 			nv = "1" if noVideo else "0"
 			artist = res["artist"]
 			title = res["title"]
-			diskFilename = f"{bid}.osz"
+			diskFilename = f"{bid} {artist} - {title}.osz"
 			serveFilename = f"{bid} {artist} - {title}"
 			if noVideo:
 				serveFilename += " [no video]"
 			serveFilename += ".osz"
 			serveFilename = serveFilename.replace('"', '').replace('?', '')
 			currentTime = int(time.time())
-			checksum = hashlib.md5(bytes(f"{bid}{diskFilename}{serveFilename}{currentTime}{nv}secret", "utf-8")).hexdigest()
+			checksum = hashlib.md5(bytes(f"{bid}{diskFilename}{serveFilename}{currentTime}{nv}a", "utf-8")).hexdigest()
 			url = f"https://osu.ppy.sh/d/{bid}?fs={urllib.parse.quote_plus(serveFilename)}&fd={urllib.parse.quote_plus(diskFilename)}&ts={currentTime}&cs={checksum}&nv={nv}"
 			response = requests.get(url, timeout=5)
 			self.write(response.text)
