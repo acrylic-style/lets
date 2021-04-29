@@ -41,15 +41,12 @@ class handler(requestsManager.asyncRequestHandler):
 			checksum = hashlib.md5(f"{bid}{diskFilename}{serveFilename}{currentTime}{nv}a".encode()).hexdigest()
 			eServeFilename = urllib.parse.quote_plus(serveFilename).replace("+", "%20")
 			url = f"https://osu.ppy.sh/d/{bid}?fs={eServeFilename}&fd={diskFilename}&ts={currentTime}&cs={checksum}&nv={nv}"
-			headers = {
-				"accept_encoding": "gzip",
-			}
-			response = requests.get(url, timeout=5, headers=headers)
-			self.write(response.content)
-			# self.set_status(302, "Moved Temporarily")
-			# self.add_header("Location", url)
-			# self.add_header("Cache-Control", "no-cache")
-			# self.add_header("Pragma", "no-cache")
+			#response = requests.get(url, timeout=5)
+			#self.write(response.content)
+			self.set_status(302, "Moved Temporarily")
+			self.add_header("Location", url)
+			self.add_header("Cache-Control", "no-cache")
+			self.add_header("Pragma", "no-cache")
 		except ValueError:
 			self.set_status(400)
 			self.write("Invalid set id")
