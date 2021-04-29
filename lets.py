@@ -92,7 +92,7 @@ def make_app():
 
 		(r"/loadTest", loadTestHandler.handler),
 
-		(r"^/(\d+)$", avatarHandler.handler)
+		(r"^/(\d+)(\.png)?$", avatarHandler.handler)
 	], default_handler_class=defaultHandler.handler)
 
 

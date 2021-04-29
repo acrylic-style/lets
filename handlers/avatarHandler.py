@@ -6,6 +6,7 @@ import time
 from common.web import requestsManager
 from common.sentry import sentry
 
+
 class handler(requestsManager.asyncRequestHandler):
 	"""
 	Handler for /<number>
@@ -19,6 +20,8 @@ class handler(requestsManager.asyncRequestHandler):
 		try:
 			ct = int(time.time()) * 10
 			res = requests.get(f"https://osu.acrylicstyle.xyz/uploads-avatar/{uid}?{ct}")
+			if res.status_code != 200:
+				raise requests.RequestException()
 			self.write(res.content)
 		except requests.RequestException:
 			with open("./guest.png", "rb") as f:
