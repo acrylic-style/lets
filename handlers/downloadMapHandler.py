@@ -31,7 +31,7 @@ class handler(requestsManager.asyncRequestHandler):
 			nv = "1" if noVideo else "0"
 			artist = res["artist"]
 			title = res["title"]
-			diskFilename = f"{bid} {artist} - {title}.osz"
+			diskFilename = ""
 			serveFilename = f"{bid} {artist} - {title}"
 			if noVideo:
 				serveFilename += " [no video]"
@@ -39,7 +39,8 @@ class handler(requestsManager.asyncRequestHandler):
 			serveFilename = serveFilename.replace('"', '').replace('?', '')
 			currentTime = int(time.time())
 			checksum = hashlib.md5(bytes(f"{bid}{diskFilename}{serveFilename}{currentTime}{nv}a", "utf-8")).hexdigest()
-			url = f"https://osu.ppy.sh/d/{bid}?fs={urllib.parse.quote_plus(serveFilename)}&fd={urllib.parse.quote_plus(diskFilename)}&ts={currentTime}&cs={checksum}&nv={nv}"
+			eServeFilename = urllib.parse.quote_plus(serveFilename).replace("+", "%20")
+			url = f"https://osu.ppy.sh/d/{bid}?fs={eServeFilename}&fd={diskFilename}&ts={currentTime}&cs={checksum}&nv={nv}"
 			response = requests.get(url, timeout=5)
 			self.write(response.text)
 			# self.set_status(302, "Moved Temporarily")
