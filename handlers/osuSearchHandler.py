@@ -50,7 +50,11 @@ class handler(requestsManager.asyncRequestHandler):
 				approved = "1 OR 2"
 			sort = ""
 			if query.lower() == "newest":
-				sort = "ORDER BY approved_date DESC"
+				if rankedStatus == 5 or rankedStatus == 2:
+					field = "last_update"
+				else:
+					field = "approved_date"
+				sort = f"ORDER BY {field} DESC"
 			if query.lower() == "top rated":
 				sort = "ORDER BY rating DESC"
 			if query.lower() == "most played":
