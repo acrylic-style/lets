@@ -38,7 +38,7 @@ class handler(requestsManager.asyncRequestHandler):
 			serveFilename += ".osz"
 			serveFilename = serveFilename.replace('"', '').replace('?', '')
 			currentTime = int(time.time())
-			checksum = hashlib.md5(f"{bid}{diskFilename}{serveFilename}{currentTime}{nv}a", "utf-8".encode()).hexdigest()
+			checksum = hashlib.md5(f"{bid}{diskFilename}{serveFilename}{currentTime}{nv}a".encode()).hexdigest()
 			eServeFilename = urllib.parse.quote_plus(serveFilename).replace("+", "%20")
 			url = f"https://osu.ppy.sh/d/{bid}?fs={eServeFilename}&fd={diskFilename}&ts={currentTime}&cs={checksum}&nv={nv}"
 			headers = {
