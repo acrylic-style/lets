@@ -23,10 +23,11 @@ class handler(requestsManager.asyncRequestHandler):
 			if res.status_code != 200:
 				raise requests.RequestException()
 			self.write(res.content)
+			self.add_header("Content-Type", "image/png")
 		except requests.RequestException:
 			with open("./guest.png", "rb") as f:
 				self.write(f.read())
+				self.add_header("Content-Type", "image/png")
 		finally:
-			self.add_header("Content-Type", "image/png")
 			self.add_header("Cache-Control", "no-cache")
 			self.add_header("Pragma", "no-cache")
