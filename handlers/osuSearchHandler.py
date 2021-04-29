@@ -58,7 +58,7 @@ class handler(requestsManager.asyncRequestHandler):
 			if query.lower() == "top rated":
 				sort = "ORDER BY rating DESC"
 			if query.lower() == "most played":
-				sort = "ORDER BY playcount DESC"
+				sort = "ORDER BY play_count DESC"
 
 			res = glob.db.fetchAll(
 				f"SELECT * FROM (SELECT * FROM osu_beatmapsets WHERE approved = {approved} {sort} LIMIT %s, 100) a LEFT JOIN (SELECT * FROM osu_beatmaps) b ON a.beatmapset_id = b.beatmapset_id",
