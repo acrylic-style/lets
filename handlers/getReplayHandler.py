@@ -9,6 +9,7 @@ from constants import exceptions
 from helpers import replayHelper
 from objects import glob
 from common.sentry import sentry
+from common.constants import gameModes
 
 class handler(requestsManager.asyncRequestHandler):
 	"""
@@ -29,13 +30,14 @@ class handler(requestsManager.asyncRequestHandler):
 				requestsManager.printArguments(self)
 
 			# Check arguments
-			if not requestsManager.checkArguments(self.request.arguments, ["c", "u", "h"]):
+			if not requestsManager.checkArguments(self.request.arguments, ["c", "u", "h", "m"]):
 				raise exceptions.invalidArgumentsException(self.MODULE_NAME)
 
 			# Get arguments
 			username = self.get_argument("u")
 			password = self.get_argument("h")
 			replayID = self.get_argument("c")
+			game_mode = self.get_argument("m")
 
 			# Login check
 			userID = userUtils.getID(username)
@@ -55,11 +57,11 @@ class handler(requestsManager.asyncRequestHandler):
 					userUtils.incrementReplaysWatched(replayData["user_id"], replayData["play_mode"])
 
 			# Serve replay
-			log.info("Serving replay_{}.osr".format(replayID))
+			log.info(f"Serving replay_{gameModes.getWebGameMode(game_mode)}_{replayID}.osr")
 			r = ""
 			replayID = int(replayID)
 			try:
-				r = replayHelper.getRawReplayS3(replayID)
+				r = replayHelper.getRawReplayS3(replayID, game_mode)
 			except timeout_decorator.TimeoutError:
 				log.warning("S3 timed out")
 				sentry.captureMessage("S3 timeout while fetching replay.")

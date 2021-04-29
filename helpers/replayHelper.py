@@ -9,6 +9,7 @@ from common.log import logUtils as log
 from common.sentry import sentry
 from constants import exceptions
 from constants import dataTypes
+from common.constants import gameModes
 from helpers import binaryHelper
 from helpers import s3
 from objects import glob
@@ -21,23 +22,28 @@ def toDotTicks(unixTime):
 	return (10000000*unixTime) + 621355968000000000
 
 
-def _getRawReplayFailedLocal(scoreID):
+def _getRawReplayFailedLocal(scoreID, gm: str):
 	try:
-		with open(os.path.join(glob.conf["FAILED_REPLAYS_FOLDER"], "replay_{}.osr".format(scoreID)), "rb") as f:
+		with open(os.path.join(glob.conf["FAILED_REPLAYS_FOLDER"], f"replay_{gm}_{scoreID}.osr"), "rb") as f:
 			return f.read()
 	except FileNotFoundError:
-		with open(os.path.join(glob.conf["REPLAYS_FOLDER"], "replay_{}.osr".format(scoreID)), "rb") as f:
-			return f.read()
+		try:
+			with open(os.path.join(glob.conf["REPLAYS_FOLDER"], f"replay_{gm}_{scoreID}.osr"), "rb") as f:
+				return f.read()
+		except FileNotFoundError:
+			# find with old filename if replay_gm_id.osr does not found
+			with open(os.path.join(glob.conf["REPLAYS_FOLDER"], f"replay_{scoreID}.osr"), "rb") as f:
+				return f.read()
 
 
 @timeout(5, use_signals=False)
-def getRawReplayS3(scoreID):
+def getRawReplayS3(scoreID, game_mode: int):
 	scoreID = int(scoreID)
 	if not glob.conf.s3_enabled:
-		log.warning("S3 is disabled! Using failed local")
-		return _getRawReplayFailedLocal(scoreID)
+		log.debug("S3 is disabled, serving replay from local")
+		return _getRawReplayFailedLocal(scoreID, gameModes.getWebGameMode(game_mode))
 
-	fileName = "replay_{}.osr".format(scoreID)
+	fileName = f"replay_{gameModes.getWebGameMode(game_mode)}_{scoreID}.osr"
 	log.debug("Downloading {} from s3".format(fileName))
 	with io.BytesIO() as f:
 		bucket = s3.getReadReplayBucketName(scoreID)

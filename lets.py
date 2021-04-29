@@ -75,8 +75,8 @@ def make_app():
 
 		(r"/web/osu-getseasonal.php", seasonalHandler.handler),
 
-		(r"/p/verify", redirectHandler.handler, dict(destination="https://ripple.moe/index.php?p=2")),
-		(r"/u/(.*)", redirectHandler.handler, dict(destination="https://ripple.moe/index.php?u={}")),
+		(r"/p/verify", redirectHandler.handler, dict(destination="https://osu.acrylicstyle.xyz/dashboard")),
+		(r"/u/(.*)", redirectHandler.handler, dict(destination="https://osu.acrylicstyle.xyz/users/{}")),
 
 		(r"/api/v1/status", apiStatusHandler.handler),
 		(r"/api/v1/pp", apiPPHandler.handler),
@@ -216,17 +216,6 @@ def main():
 		# Set achievements version
 		glob.redis.set("lets:achievements_version", glob.ACHIEVEMENTS_VERSION)
 		loudLog("Achievements version is {}".format(glob.ACHIEVEMENTS_VERSION))
-
-		# Check if s3 is enabled
-		if not glob.conf.s3_enabled:
-			loudLog("S3 is disabled!", logging.warning)
-		else:
-			c = glob.db.fetch("SELECT COUNT(*) AS c FROM s3_replay_buckets WHERE max_score_id IS NULL")["c"]
-			if c != 1:
-				logging.error(
-					"There must be only one bucket flagged as WRITE bucket! You have {}.".format(c),
-				)
-				sys.exit()
 
 		# Discord
 		if glob.conf.schiavo_enabled:
