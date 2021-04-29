@@ -46,10 +46,14 @@ class handler(requestsManager.asyncRequestHandler):
 			# Get data from cheesegull API
 			log.info("Requested osu!direct search: {}".format(query if query != "" else "index"))
 			approved = cheesegull.directToApiStatus(rankedStatus)
+			if approved is None:
+				raise exceptions.noAPIDataError()
+			if approved == 999:
+				approved = "1 OR 2"
+
 			res = glob.db.fetchAll(
-				"SELECT * FROM (SELECT * FROM osu_beatmapsets WHERE approved = %s LIMIT %s, 100) a LEFT JOIN (SELECT * FROM osu_beatmaps) b ON a.beatmapset_id = b.beatmapset_id",
+				f"SELECT * FROM (SELECT * FROM osu_beatmapsets WHERE approved = {approved} LIMIT %s, 100) a LEFT JOIN (SELECT * FROM osu_beatmaps) b ON a.beatmapset_id = b.beatmapset_id",
 				(
-					approved,
 					page * 100,
 				)
 			)
