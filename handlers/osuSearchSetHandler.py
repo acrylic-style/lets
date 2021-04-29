@@ -6,6 +6,8 @@ from common.web import requestsManager
 from common.web import cheesegull
 from common.log import logUtils as log
 from constants import exceptions
+from objects import glob
+
 
 class handler(requestsManager.asyncRequestHandler):
 	"""
@@ -17,18 +19,23 @@ class handler(requestsManager.asyncRequestHandler):
 	@tornado.gen.engine
 	@sentry.captureTornado
 	def asyncGet(self):
-		if True:
-			self.write("0\n")
-			return
+		# Print arguments
+		if glob.conf["DEBUG"]:
+			requestsManager.printArguments(self)
+
 		output = ""
 		try:
 			# Get data by beatmap id or beatmapset id
 			if "b" in self.request.arguments:
 				_id = self.get_argument("b")
-				data = cheesegull.getBeatmap(_id)
+				data = glob.db.fetch(
+					"SELECT osu_beatmapsets.* FROM osu_beatmaps LEFT JOIN osu_beatmapsets ON "
+					"osu_beatmaps.beatmapset_id = osu_beatmapsets.beatmapset_id WHERE osu_beatmaps.beatmap_id = %s",
+					_id
+				)
 			elif "s" in self.request.arguments:
 				_id = self.get_argument("s")
-				data = cheesegull.getBeatmapSet(_id)
+				data = glob.db.fetch("SELECT * FROM osu_beatmapsets WHERE beatmapset_id = %s", _id)
 			else:
 				raise exceptions.invalidArgumentsException(self.MODULE_NAME)
 

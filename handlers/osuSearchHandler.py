@@ -6,6 +6,7 @@ from common.web import requestsManager
 from common.web import cheesegull
 from constants import exceptions
 from common.log import logUtils as log
+from objects import glob
 
 class handler(requestsManager.asyncRequestHandler):
 	"""
@@ -17,9 +18,10 @@ class handler(requestsManager.asyncRequestHandler):
 	@tornado.gen.engine
 	@sentry.captureTornado
 	def asyncGet(self):
-		if True:
-			self.write("0\n")
-			return
+		# Print arguments
+		if glob.conf["DEBUG"]:
+			requestsManager.printArguments(self)
+
 		output = ""
 		try:
 			try:
@@ -43,18 +45,32 @@ class handler(requestsManager.asyncRequestHandler):
 
 			# Get data from cheesegull API
 			log.info("Requested osu!direct search: {}".format(query if query != "" else "index"))
-			searchData = cheesegull.getListing(rankedStatus=cheesegull.directToApiStatus(rankedStatus), page=page * 100, gameMode=gameMode, query=query)
-			if searchData is None or searchData is None:
+			approved = cheesegull.directToApiStatus(rankedStatus)
+			res = glob.db.fetchAll(
+				"SELECT * FROM (SELECT * FROM osu_beatmapsets WHERE approved = %s LIMIT %s, 100) a LEFT JOIN (SELECT * FROM osu_beatmaps) b ON a.beatmapset_id = b.beatmapset_id",
+				(
+					approved,
+					page * 100,
+				)
+			)
+			if res is None:
 				raise exceptions.noAPIDataError()
 
+			searchData = {}
+			for data in res:
+				if data.beatmapset_id in searchData:
+					searchData[data.beatmapset_id].append(data)
+				else:
+					searchData[data.beatmapset_id] = [data]
+
 			# Write output
-			output += "999" if len(searchData) == 100 else str(len(searchData))
+			output += "999" if len(searchData) == 100 else str(len(list(searchData.values())))
 			output += "\n"
-			for beatmapSet in searchData:
+			for beatmapSet in list(searchData.values()):
 				try:
 					output += cheesegull.toDirect(beatmapSet) + "\r\n"
 				except ValueError:
-					# Invalid cheesegull beatmap (empty beatmapset, cheesegull bug? See Sentry #LETS-00-32)
+					# Invalid cheesegull beatmap
 					pass
 		except (exceptions.noAPIDataError, exceptions.invalidArgumentsException):
 			output = "0\n"
