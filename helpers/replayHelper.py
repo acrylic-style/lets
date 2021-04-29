@@ -41,9 +41,9 @@ def getRawReplayS3(scoreID, game_mode: int):
 	scoreID = int(scoreID)
 	if not glob.conf.s3_enabled:
 		log.debug("S3 is disabled, serving replay from local")
-		return _getRawReplayFailedLocal(scoreID, gameModes.getWebGameMode(game_mode))
+		return _getRawReplayFailedLocal(scoreID, gameModes.getSafeGameMode(game_mode))
 
-	fileName = f"replay_{gameModes.getWebGameMode(game_mode)}_{scoreID}.osr"
+	fileName = f"replay_{gameModes.getSafeGameMode(game_mode)}_{scoreID}.osr"
 	log.debug("Downloading {} from s3".format(fileName))
 	with io.BytesIO() as f:
 		bucket = s3.getReadReplayBucketName(scoreID)
@@ -61,23 +61,6 @@ def getRawReplayS3(scoreID, game_mode: int):
 			raise
 		f.seek(0)
 		return f.read()
-
-
-def _getFirstReplayFileName(scoreID):
-	"""
-	Iterates over all REPLAYS_FOLDERS in config, and returns the
-	path of the replay. It starts from the first folder, if the replay
-	is not there, it tries with the second folder and so on.
-	Returns None if there's no such file in any of the folders.
-
-	:param scoreID:
-	:return: path or None
-	"""
-	for folder in glob.conf["REPLAYS_FOLDERS"]:
-		fileName = "{}/replay_{}.osr".format(folder, scoreID)
-		if os.path.isfile(fileName):
-			return fileName
-	return None
 
 
 def buildFullReplay(scoreID=None, scoreData=None, rawReplay=None):

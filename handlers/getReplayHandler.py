@@ -57,7 +57,7 @@ class handler(requestsManager.asyncRequestHandler):
 					userUtils.incrementReplaysWatched(replayData["user_id"], replayData["play_mode"])
 
 			# Serve replay
-			log.info(f"Serving replay_{gameModes.getWebGameMode(game_mode)}_{replayID}.osr")
+			log.info(f"Serving replay_{gameModes.getSafeGameMode(game_mode)}_{replayID}.osr")
 			r = ""
 			replayID = int(replayID)
 			try:
