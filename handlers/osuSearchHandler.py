@@ -62,10 +62,10 @@ class handler(requestsManager.asyncRequestHandler):
 
 			searchData = {}
 			for data in res:
-				if data.beatmapset_id in searchData:
-					searchData[data.beatmapset_id].append(data)
+				if data["beatmapset_id"] in searchData:
+					searchData[data["beatmapset_id"]].append(data)
 				else:
-					searchData[data.beatmapset_id] = [data]
+					searchData[data["beatmapset_id"]] = [data]
 
 			# Write output
 			output += "999" if len(searchData) == 100 else str(len(list(searchData.values())))
