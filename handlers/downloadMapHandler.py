@@ -38,11 +38,14 @@ class handler(requestsManager.asyncRequestHandler):
 			serveFilename += ".osz"
 			serveFilename = serveFilename.replace('"', '').replace('?', '')
 			currentTime = int(time.time())
-			checksum = hashlib.md5(bytes(f"{bid}{diskFilename}{serveFilename}{currentTime}{nv}a", "utf-8")).hexdigest()
+			checksum = hashlib.md5(f"{bid}{diskFilename}{serveFilename}{currentTime}{nv}a", "utf-8".encode()).hexdigest()
 			eServeFilename = urllib.parse.quote_plus(serveFilename).replace("+", "%20")
 			url = f"https://osu.ppy.sh/d/{bid}?fs={eServeFilename}&fd={diskFilename}&ts={currentTime}&cs={checksum}&nv={nv}"
-			response = requests.get(url, timeout=5)
-			self.write(response.text)
+			headers = {
+				"accept_encoding": "gzip",
+			}
+			response = requests.get(url, timeout=5, headers=headers)
+			self.write(response.content)
 			# self.set_status(302, "Moved Temporarily")
 			# self.add_header("Location", url)
 			# self.add_header("Cache-Control", "no-cache")
